@@ -14,7 +14,7 @@ from typing import Dict, Any, List, Optional
 from .forms import SignupForm, MailAutomationForm, TemplateEditForm
 from .exceptions import MailSendError, TemplateNotFoundError, FileProcessingError, ReportGenerationError
 from .services.mailer import send_single_mail, encode_attachment
-from .services.templates import template_service
+from .services.templates import template_service, TemplateService
 from .services.reporting import reporting_service
 from .services.file_processor import file_processor
 from .services.graph_client import (
