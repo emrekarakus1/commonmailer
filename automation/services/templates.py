@@ -17,18 +17,19 @@ logger = logging.getLogger(__name__)
 class TemplateService:
     """Service for managing email templates."""
     
-    def __init__(self):
+    def __init__(self, user_id: Optional[int] = None):
+        self.user_id = user_id
         self._templates_cache: Optional[Dict[str, Dict[str, str]]] = None
     
     def get_templates(self) -> Dict[str, Dict[str, str]]:
         """
-        Get all email templates.
+        Get all email templates for the current user.
         
         Returns:
             Dictionary of templates with name as key and {subject, body} as value
         """
         if self._templates_cache is None:
-            self._templates_cache = load_email_templates()
+            self._templates_cache = self._load_user_templates()
         return self._templates_cache
     
     def get_template(self, name: str) -> Dict[str, str]:
@@ -51,7 +52,7 @@ class TemplateService:
     
     def save_template(self, name: str, subject: str, body: str) -> None:
         """
-        Save or update a template.
+        Save or update a template for the current user.
         
         Args:
             name: Template name
@@ -60,10 +61,10 @@ class TemplateService:
         """
         templates = self.get_templates()
         templates[name] = {"subject": subject, "body": body}
-        save_email_templates(templates)
+        self._save_user_templates(templates)
         # Update cache
         self._templates_cache = templates
-        logger.info(f"Template '{name}' saved")
+        logger.info(f"Template '{name}' saved for user {self.user_id}")
     
     def delete_template(self, name: str) -> None:
         """
@@ -80,9 +81,51 @@ class TemplateService:
             raise TemplateNotFoundError(f"Template '{name}' not found")
         
         del templates[name]
-        save_email_templates(templates)
+        self._save_user_templates(templates)
         self._templates_cache = templates
-        logger.info(f"Template '{name}' deleted")
+        logger.info(f"Template '{name}' deleted for user {self.user_id}")
+    
+    def _load_user_templates(self) -> Dict[str, Dict[str, str]]:
+        """Load templates for the current user."""
+        if not self.user_id:
+            return {}
+        
+        user_templates_file = Path(f"email_templates_user_{self.user_id}.json")
+        if not user_templates_file.exists():
+            return {}
+        
+        try:
+            with open(user_templates_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            
+            # Normalize to {subject, body} format
+            normalized: Dict[str, Dict[str, str]] = {}
+            for name, value in data.items():
+                if isinstance(value, dict):
+                    subject = str(value.get("subject", ""))
+                    body = str(value.get("body", ""))
+                else:  # Legacy format
+                    subject = ""
+                    body = str(value)
+                normalized[str(name)] = {"subject": subject, "body": body}
+            
+            return normalized
+        except Exception as e:
+            logger.error(f"Error loading user templates for user {self.user_id}: {e}")
+            return {}
+    
+    def _save_user_templates(self, templates: Dict[str, Dict[str, str]]) -> None:
+        """Save templates for the current user."""
+        if not self.user_id:
+            return
+        
+        user_templates_file = Path(f"email_templates_user_{self.user_id}.json")
+        try:
+            with open(user_templates_file, "w", encoding="utf-8") as f:
+                json.dump(templates, f, indent=2, ensure_ascii=False)
+        except Exception as e:
+            logger.error(f"Error saving user templates for user {self.user_id}: {e}")
+            raise
     
     def render_template(self, name: str, context: Dict[str, Any]) -> tuple[str, str]:
         """
@@ -112,7 +155,7 @@ class TemplateService:
             new_templates = json.loads(json_content)
             templates = self.get_templates()
             templates.update(new_templates)
-            save_email_templates(templates)
+            self._save_user_templates(templates)
             self._templates_cache = templates
             logger.info(f"Uploaded {len(new_templates)} templates")
         except json.JSONDecodeError as e:
@@ -133,5 +176,5 @@ class TemplateService:
         self._templates_cache = None
 
 
-# Global instance
+# Global instance - will be replaced with user-specific instances
 template_service = TemplateService()

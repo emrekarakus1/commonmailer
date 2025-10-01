@@ -30,8 +30,14 @@ class MailAutomationForm(forms.Form):
     dry_run = forms.BooleanField(required=False, initial=True)
 
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        templates = load_email_templates()
+        if user:
+            from .services.templates import TemplateService
+            template_service = TemplateService(user_id=user.id)
+            templates = template_service.get_templates()
+        else:
+            templates = load_email_templates()
         self.fields["template"].choices = [(k, k) for k in templates.keys()]
 
 

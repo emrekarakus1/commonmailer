@@ -330,7 +330,7 @@ def _mail_automation_impl(request: HttpRequest) -> HttpResponse:
         if request.POST.get("action") == "attach_smoke_test":
             return _handle_attachment_smoke_test(request)
         
-        form = MailAutomationForm(request.POST, request.FILES)
+        form = MailAutomationForm(request.POST, request.FILES, user=request.user)
         if form.is_valid():
             try:
                 # Process Excel file
@@ -341,8 +341,9 @@ def _mail_automation_impl(request: HttpRequest) -> HttpResponse:
 
                 # Get template
                 template_name = form.cleaned_data["template"]
+                user_template_service = TemplateService(user_id=request.user.id)
                 try:
-                    template_obj = template_service.get_template(template_name)
+                    template_obj = user_template_service.get_template(template_name)
                     subject = template_obj["subject"]
                     template_body = template_obj["body"]
                 except TemplateNotFoundError:
@@ -417,7 +418,7 @@ def _mail_automation_impl(request: HttpRequest) -> HttpResponse:
             context["form"] = form
             return render(request, "automation/mail_automation.html", context)
     else:
-        form = MailAutomationForm()
+        form = MailAutomationForm(user=request.user)
         context["form"] = form
         return render(request, "automation/mail_automation.html", context)
 
@@ -433,7 +434,9 @@ def template_manager(request: HttpRequest) -> HttpResponse:
 
 def _template_manager_impl(request: HttpRequest) -> HttpResponse:
     """Main template manager logic."""
-    templates = template_service.get_templates()
+    # Create user-specific template service
+    user_template_service = TemplateService(user_id=request.user.id)
+    templates = user_template_service.get_templates()
     context = {"templates": templates}
     
     # Handle edit parameter
@@ -454,7 +457,7 @@ def _template_manager_impl(request: HttpRequest) -> HttpResponse:
             template_name = request.POST.get("template_name")
             if template_name:
                 try:
-                    template_service.delete_template(template_name)
+                    user_template_service.delete_template(template_name)
                     messages.success(request, f"Template '{template_name}' deleted successfully.")
                     return redirect("automation:template_manager")
                 except TemplateNotFoundError:
@@ -469,7 +472,7 @@ def _template_manager_impl(request: HttpRequest) -> HttpResponse:
                     subject = form.cleaned_data["subject"]
                     body = form.cleaned_data["body"]
                     logger.info(f"Saving template: {template_name}")
-                    template_service.save_template(template_name, subject, body)
+                    user_template_service.save_template(template_name, subject, body)
                     messages.success(request, f"Template '{template_name}' saved successfully.")
                     return redirect("automation:template_manager")
                 except Exception as e:
@@ -488,8 +491,9 @@ def _template_manager_impl(request: HttpRequest) -> HttpResponse:
 @login_required
 def template_edit(request: HttpRequest, template_name: str) -> HttpResponse:
     """Edit template view."""
+    user_template_service = TemplateService(user_id=request.user.id)
     try:
-        template_data = template_service.get_template(template_name)
+        template_data = user_template_service.get_template(template_name)
     except TemplateNotFoundError:
         messages.error(request, f"Template '{template_name}' not found.")
         return redirect("automation:template_manager")
@@ -498,7 +502,7 @@ def template_edit(request: HttpRequest, template_name: str) -> HttpResponse:
         form = TemplateEditForm(request.POST)
         if form.is_valid():
             try:
-                template_service.save_template(
+                user_template_service.save_template(
                     template_name,
                     form.cleaned_data["subject"],
                     form.cleaned_data["body"]
@@ -515,15 +519,16 @@ def template_edit(request: HttpRequest, template_name: str) -> HttpResponse:
 @login_required
 def template_delete(request: HttpRequest, template_name: str) -> HttpResponse:
     """Delete template view."""
+    user_template_service = TemplateService(user_id=request.user.id)
     try:
-        template_service.get_template(template_name)
+        user_template_service.get_template(template_name)
     except TemplateNotFoundError:
         messages.error(request, f"Template '{template_name}' not found.")
         return redirect("automation:template_manager")
     
     if request.method == "POST":
         try:
-            template_service.delete_template(template_name)
+            user_template_service.delete_template(template_name)
             messages.success(request, f"Template '{template_name}' deleted successfully.")
             return redirect("automation:template_manager")
         except TemplateNotFoundError:
@@ -537,7 +542,8 @@ def template_delete(request: HttpRequest, template_name: str) -> HttpResponse:
 def template_download(request: HttpRequest) -> HttpResponse:
     """Download templates as JSON file."""
     try:
-        content = template_service.export_templates_to_json()
+        user_template_service = TemplateService(user_id=request.user.id)
+        content = user_template_service.export_templates_to_json()
         response = HttpResponse(content, content_type='application/json')
         response['Content-Disposition'] = 'attachment; filename="email_templates.json"'
         return response
@@ -594,7 +600,8 @@ def download_templates(request: HttpRequest) -> HttpResponse:
 def delete_template(request: HttpRequest, name: str) -> HttpResponse:
     """Delete a template."""
     try:
-        template_service.delete_template(name)
+        user_template_service = TemplateService(user_id=request.user.id)
+        user_template_service.delete_template(name)
         messages.success(request, f"Template '{name}' deleted successfully.")
     except TemplateNotFoundError:
         messages.error(request, f"Template '{name}' not found.")
