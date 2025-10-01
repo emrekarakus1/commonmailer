@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Template Manager - Mail Automation</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        color: #1f2937;
+      }
+      
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+      
+      .header {
+        text-align: center;
+        margin-bottom: 3rem;
+        color: white;
+      }
+      
+      .header h1 {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .header p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        font-weight: 300;
+      }
+      
+      .nav-bar {
+        background: rgba(255,255,255,0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 1rem 2rem;
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: white;
+      }
+      
+      .nav-bar .back-link {
+        color: white;
+        text-decoration: none;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.1);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      
+      .nav-bar .back-link:hover {
+        background: rgba(255,255,255,0.2);
+        transform: translateY(-1px);
+      }
+      
+      .card {
+        background: white;
+        border-radius: 20px;
+        padding: 2.5rem;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2);
+      }
+      
+      .card h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        color: #1f2937;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+      }
+      
+      .form-group {
+        margin-bottom: 1.5rem;
+      }
+      
+      .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #374151;
+        font-size: 0.95rem;
+      }
+      
+      .form-group input,
+      .form-group textarea,
+      .form-group select {
+        width: 100%;
+        padding: 1rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #f9fafb;
+        font-family: inherit;
+      }
+      
+      .form-group input:focus,
+      .form-group textarea:focus,
+      .form-group select:focus {
+        outline: none;
+        border-color: #667eea;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+      
+      .form-group textarea {
+        height: 200px;
+        resize: vertical;
+        font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+        line-height: 1.6;
+      }
+      
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      }
+      
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+      }
+      
+      .btn.secondary {
+        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3);
+      }
+      
+      .btn.secondary:hover {
+        box-shadow: 0 8px 25px rgba(107, 114, 128, 0.4);
+      }
+      
+      .btn.danger {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+      }
+      
+      .btn.danger:hover {
+        box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+      }
+      
+      .btn-group {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: 1.5rem;
+      }
+      
+      .error {
+        background: #fef2f2;
+        color: #dc2626;
+        padding: 1rem;
+        border-radius: 12px;
+        border-left: 4px solid #dc2626;
+        margin-bottom: 1.5rem;
+        font-weight: 500;
+      }
+      
+      .success {
+        background: #f0fdf4;
+        color: #16a34a;
+        padding: 1rem;
+        border-radius: 12px;
+        border-left: 4px solid #16a34a;
+        margin-bottom: 1.5rem;
+        font-weight: 500;
+      }
+      
+      .templates-table {
+        overflow-x: auto;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        margin-bottom: 1.5rem;
+      }
+      
+      .templates-table table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+      }
+      
+      .templates-table th {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      
+      .templates-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #e5e7eb;
+        font-size: 0.9rem;
+        vertical-align: top;
+      }
+      
+      .templates-table tr:hover {
+        background: #f9fafb;
+      }
+      
+      .templates-table .template-name {
+        font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+        background: #f3f4f6;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-weight: 600;
+      }
+      
+      .templates-table .actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+      
+      .templates-table .actions .btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+      }
+      
+      .format-example {
+        background: #f8fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-top: 1rem;
+      }
+      
+      .format-example h4 {
+        color: #1e293b;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+      }
+      
+      .format-example pre {
+        background: #1f2937;
+        color: #e5e7eb;
+        padding: 1rem;
+        border-radius: 8px;
+        font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        overflow-x: auto;
+      }
+      
+      @media (max-width: 768px) {
+        .container {
+          padding: 1rem;
+        }
+        
+        .header h1 {
+          font-size: 2rem;
+        }
+        
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        
+        .nav-bar {
+          flex-direction: column;
+          gap: 1rem;
+          text-align: center;
+        }
+        
+        .templates-table .actions {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1><i class="fas fa-file-alt"></i> Template Manager</h1>
+        <p>Create, edit, and manage your email templates with ease</p>
+      </div>
+
+      <div class="nav-bar">
+        <a href="{% url 'automation:dashboard' %}" class="back-link">
+          <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+        <div style="font-weight: 500;">
+          <i class="fas fa-templates"></i> Template Management
+        </div>
+      </div>
+
+      {% if error %}
+        <div class="error">
+          <i class="fas fa-exclamation-triangle"></i> {{ error }}
+        </div>
+      {% endif %}
+      
+      {% if messages %}
+        {% for message in messages %}
+          <div class="error">
+            <i class="fas fa-exclamation-triangle"></i> {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+      
+      {% if success %}
+        <div class="success">
+          <i class="fas fa-check-circle"></i> {{ success }}
+        </div>
+      {% endif %}
+
+      <div class="grid">
+        <div class="card">
+          <h2>
+            <i class="fas fa-list"></i> Existing Templates
+          </h2>
+          <div class="templates-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Subject</th>
+                  <th>Body Preview</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for name, tpl in templates.items %}
+                  <tr>
+                    <td>
+                      <span class="template-name">{{ name }}</span>
+                    </td>
+                    <td>{{ tpl.subject|truncatechars:50 }}</td>
+                    <td>{{ tpl.body|truncatechars:120 }}</td>
+                    <td>
+                      <div class="actions">
+                        <a class="btn secondary" href="?edit={{ name }}">
+                          <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <a class="btn danger" href="{% url 'automation:delete_template' name=name %}">
+                          <i class="fas fa-trash"></i> Delete
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="4" style="text-align: center; padding: 2rem; color: #6b7280;">
+                      <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 1rem; display: block;"></i>
+                      No templates created yet. Create your first template below!
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="btn-group">
+            <a class="btn secondary" href="{% url 'automation:download_templates' %}">
+              <i class="fas fa-download"></i> Download JSON
+            </a>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>
+            <i class="fas fa-plus-circle"></i> Create / Edit Template
+          </h2>
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="save_template" />
+            
+            <div class="form-group">
+              <label for="id_name">
+                <i class="fas fa-tag"></i> Template Name
+              </label>
+              {{ edit_form.name }}
+            </div>
+            
+            <div class="form-group">
+              <label for="id_subject">
+                <i class="fas fa-heading"></i> Email Subject
+              </label>
+              {{ edit_form.subject }}
+            </div>
+            
+            <div class="form-group">
+              <label for="id_body">
+                <i class="fas fa-align-left"></i> Email Body
+              </label>
+              {{ edit_form.body }}
+            </div>
+            
+            <div class="btn-group">
+              <button type="submit" class="btn">
+                <i class="fas fa-save"></i> Save Template
+              </button>
+              {% if request.GET.edit %}
+                <a href="{% url 'automation:template_manager' %}" class="btn secondary">
+                  <i class="fas fa-times"></i> Clear
+                </a>
+              {% endif %}
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>
+          <i class="fas fa-upload"></i> Bulk Upload Templates
+        </h2>
+        <p style="color: #6b7280; margin-bottom: 1.5rem;">
+          Upload a JSON file to replace all existing templates. This will overwrite your current templates.
+        </p>
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="upload_json" />
+          
+          <div class="form-group">
+            <label for="id_json_file">
+              <i class="fas fa-file-code"></i> JSON File
+            </label>
+            {{ upload_form.json_file }}
+          </div>
+          
+          <div class="btn-group">
+            <button type="submit" class="btn danger">
+              <i class="fas fa-upload"></i> Upload and Replace All Templates
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>
+          <i class="fas fa-code"></i> JSON Format Guide
+        </h2>
+        <p style="color: #6b7280; margin-bottom: 1.5rem;">
+          Use this JSON structure to create templates. You can use placeholders like <code>{name}</code>, <code>{company}</code> etc.
+        </p>
+        <div class="format-example">
+          <h4><i class="fas fa-info-circle"></i> Example JSON Structure:</h4>
+          <pre>{
+  "Welcome": {
+    "subject": "Welcome {name}!",
+    "body": "&lt;p&gt;Hello {name},&lt;br&gt;&lt;br&gt;Welcome to our service!&lt;/p&gt;"
+  },
+  "Invoice": {
+    "subject": "Invoice for {company}",
+    "body": "&lt;p&gt;Dear {name},&lt;br&gt;&lt;br&gt;Please find your invoice attached.&lt;/p&gt;"
+  }
+}</pre>
+        </div>
+      </div>
+    </div>
+  </body>
+  </html>
+
+
+
+
+
+

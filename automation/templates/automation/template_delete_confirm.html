@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Delete Template</title>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 2rem; }
+      .card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; max-width: 700px; }
+      .row { display:flex; gap:.5rem; align-items:center; }
+      .btn { display:inline-block; background:#0b5ed7; color:#fff; padding:.6rem .9rem; border-radius:6px; text-decoration:none; }
+      .btn.danger { background:#b91c1c; }
+      .btn.secondary { background:#334155; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Delete Template</h1>
+      <p>Are you sure you want to delete template <code>{{ name }}</code>?</p>
+      <form method="post">
+        {% csrf_token %}
+        <div class="row">
+          <button type="submit" class="btn danger">Yes, delete</button>
+          <a href="{% url 'automation:template_manager' %}" class="btn secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </body>
+  </html>
+
+

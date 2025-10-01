@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard - Mail Automation</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        color: #1f2937;
+      }
+      
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+      
+      .header {
+        text-align: center;
+        margin-bottom: 3rem;
+        color: white;
+      }
+      
+      .header h1 {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .header p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        font-weight: 300;
+      }
+      
+      .user-info {
+        background: rgba(255,255,255,0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 1rem 2rem;
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: white;
+      }
+      
+      .user-info .welcome {
+        font-size: 1.1rem;
+        font-weight: 500;
+      }
+      
+      .user-info .logout {
+        color: white;
+        text-decoration: none;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.1);
+        transition: all 0.3s ease;
+      }
+      
+      .user-info .logout:hover {
+        background: rgba(255,255,255,0.2);
+        transform: translateY(-1px);
+      }
+      
+      .card {
+        background: white;
+        border-radius: 20px;
+        padding: 2.5rem;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2);
+      }
+      
+      .tools-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+      }
+      
+      .tool-card {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255,255,255,0.2);
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .tool-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+      
+      .tool-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+      }
+      
+      .tool-card h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: #1f2937;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      
+      .tool-card .icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+      }
+      
+      .tool-card.mail .icon {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+      
+      .tool-card.template .icon {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      }
+      
+      .tool-card p {
+        color: #6b7280;
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+        font-size: 1rem;
+      }
+      
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      }
+      
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+      }
+      
+      .btn.secondary {
+        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3);
+      }
+      
+      .btn.secondary:hover {
+        box-shadow: 0 8px 25px rgba(107, 114, 128, 0.4);
+      }
+      
+      .features {
+        background: rgba(255,255,255,0.05);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-top: 2rem;
+        color: white;
+      }
+      
+      .features h3 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        text-align: center;
+      }
+      
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+      }
+      
+      .feature-item {
+        text-align: center;
+        padding: 1rem;
+      }
+      
+      .feature-item i {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        opacity: 0.8;
+      }
+      
+      .feature-item h4 {
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+      }
+      
+      .feature-item p {
+        font-size: 0.9rem;
+        opacity: 0.8;
+        line-height: 1.5;
+      }
+      
+      @media (max-width: 768px) {
+        .container {
+          padding: 1rem;
+        }
+        
+        .header h1 {
+          font-size: 2rem;
+        }
+        
+        .tools-grid {
+          grid-template-columns: 1fr;
+        }
+        
+        .user-info {
+          flex-direction: column;
+          gap: 1rem;
+          text-align: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1><i class="fas fa-tachometer-alt"></i> Dashboard</h1>
+        <p>Welcome to your Mail Automation Control Center</p>
+      </div>
+
+      <div class="user-info">
+        <div class="welcome">
+          <i class="fas fa-user-circle"></i> Hello, {{ request.user.username }}!
+        </div>
+        <a href="{% url 'logout' %}" class="logout">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+      </div>
+
+      <div class="card">
+        <h2 style="text-align: center; margin-bottom: 1rem; color: #1f2937; font-size: 1.8rem;">
+          <i class="fas fa-tools"></i> Available Tools
+        </h2>
+        <p style="text-align: center; color: #6b7280; margin-bottom: 2rem; font-size: 1.1rem;">
+          Choose a tool to get started with your email automation workflow
+        </p>
+        
+        <div class="tools-grid">
+          <div class="tool-card mail">
+            <h3>
+              <div class="icon">
+                <i class="fas fa-paper-plane"></i>
+              </div>
+              Mail Automation
+            </h3>
+            <p>
+              Automate sending personalized emails with PDF attachments. Upload Excel files, 
+              choose templates, and send bulk emails with company-specific invoices.
+            </p>
+            <a class="btn" href="{% url 'automation:mail_automation' %}">
+              <i class="fas fa-rocket"></i> Launch Mail Automation
+            </a>
+          </div>
+          
+          <div class="tool-card template">
+            <h3>
+              <div class="icon">
+                <i class="fas fa-file-alt"></i>
+              </div>
+              Template Manager
+            </h3>
+            <p>
+              Create, edit, and manage email templates. Upload JSON files, download templates, 
+              and organize your email content with subject and body customization.
+            </p>
+            <a class="btn secondary" href="{% url 'automation:template_manager' %}">
+              <i class="fas fa-edit"></i> Manage Templates
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="features">
+        <h3><i class="fas fa-star"></i> Key Features</h3>
+        <div class="features-grid">
+          <div class="feature-item">
+            <i class="fas fa-envelope"></i>
+            <h4>Bulk Email Sending</h4>
+            <p>Send personalized emails to hundreds of recipients with Microsoft Graph API</p>
+          </div>
+          <div class="feature-item">
+            <i class="fas fa-file-pdf"></i>
+            <h4>PDF Attachments</h4>
+            <p>Automatically attach company-specific PDF invoices based on Excel data</p>
+          </div>
+          <div class="feature-item">
+            <i class="fas fa-table"></i>
+            <h4>Excel Integration</h4>
+            <p>Upload Excel files with email addresses and company names for automated processing</p>
+          </div>
+          <div class="feature-item">
+            <i class="fas fa-eye"></i>
+            <h4>Dry Run Mode</h4>
+            <p>Preview emails before sending to ensure everything looks perfect</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+
+

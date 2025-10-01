@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mail Automation</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        color: #1f2937;
+      }
+      
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+      
+      .header {
+        text-align: center;
+        margin-bottom: 3rem;
+        color: white;
+      }
+      
+      .header h1 {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .header p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        font-weight: 300;
+      }
+      
+      .card {
+        background: white;
+        border-radius: 20px;
+        padding: 2.5rem;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2);
+      }
+      
+      .form-group {
+        margin-bottom: 1.5rem;
+      }
+      
+      .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #374151;
+        font-size: 0.95rem;
+      }
+      
+      .form-group input,
+      .form-group select {
+        width: 100%;
+        padding: 1rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #f9fafb;
+      }
+      
+      .form-group input:focus,
+      .form-group select:focus {
+        outline: none;
+        border-color: #667eea;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+      
+      .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+      }
+      
+      .checkbox-group input[type="checkbox"] {
+        width: auto;
+        margin: 0;
+      }
+      
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      }
+      
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+      }
+      
+      .btn.secondary {
+        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3);
+      }
+      
+      .btn.secondary:hover {
+        box-shadow: 0 8px 25px rgba(107, 114, 128, 0.4);
+      }
+      
+      .btn.danger {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+      }
+      
+      .btn.danger:hover {
+        box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+      }
+      
+      .btn-group {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: 2rem;
+      }
+      
+      .error {
+        background: #fef2f2;
+        color: #dc2626;
+        padding: 1rem;
+        border-radius: 12px;
+        border-left: 4px solid #dc2626;
+        margin-bottom: 1.5rem;
+        font-weight: 500;
+      }
+      
+      .success {
+        background: #f0fdf4;
+        color: #16a34a;
+        padding: 1rem;
+        border-radius: 12px;
+        border-left: 4px solid #16a34a;
+        margin-bottom: 1.5rem;
+        font-weight: 500;
+      }
+      
+      .hint {
+        color: #6b7280;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+      }
+      
+      .preview-table {
+        overflow-x: auto;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      }
+      
+      .preview-table table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+      }
+      
+      .preview-table th {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      
+      .preview-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #e5e7eb;
+        font-size: 0.9rem;
+      }
+      
+      .preview-table tr:hover {
+        background: #f9fafb;
+      }
+      
+      .logs {
+        background: #1f2937;
+        color: #e5e7eb;
+        padding: 1.5rem;
+        border-radius: 12px;
+        white-space: pre-wrap;
+        font-family: 'Monaco', 'Menlo', monospace;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        max-height: 400px;
+        overflow-y: auto;
+        border: 1px solid #374151;
+      }
+      
+      .sample-preview {
+        background: #f8fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-top: 1rem;
+      }
+      
+      .sample-preview h4 {
+        color: #1e293b;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+      }
+      
+      .sample-preview .subject {
+        background: #dbeafe;
+        color: #1e40af;
+        padding: 0.75rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        font-weight: 500;
+      }
+      
+      .sample-preview .body {
+        background: white;
+        padding: 1rem;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        white-space: pre-wrap;
+        font-family: 'Monaco', 'Menlo', monospace;
+        font-size: 0.9rem;
+        line-height: 1.6;
+      }
+      
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+      
+      .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      }
+      
+      .stat-card .number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #667eea;
+        margin-bottom: 0.5rem;
+      }
+      
+      .stat-card .label {
+        color: #6b7280;
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+      
+      @media (max-width: 768px) {
+        .container {
+          padding: 1rem;
+        }
+        
+        .header h1 {
+          font-size: 2rem;
+        }
+        
+        .card {
+          padding: 1.5rem;
+        }
+        
+        .btn-group {
+          flex-direction: column;
+        }
+        
+        .btn {
+          justify-content: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1><i class="fas fa-paper-plane"></i> Mail Automation</h1>
+        <p>Upload an Excel file, choose a template, and send personalized emails with PDF attachments</p>
+      </div>
+
+      {% if error %}
+        <div class="error">
+          <i class="fas fa-exclamation-triangle"></i> {{ error }}
+        </div>
+      {% endif %}
+      
+      {% if messages %}
+        {% for message in messages %}
+          <div class="error">
+            <i class="fas fa-exclamation-triangle"></i> {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+      
+      {% if signin_required %}
+        <div class="card">
+          <div style="text-align: center;">
+            <i class="fas fa-sign-in-alt" style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;"></i>
+            <h3 style="margin-bottom: 1rem;">Microsoft Graph Authentication Required</h3>
+            <p style="margin-bottom: 2rem; color: #6b7280;">You need to sign in to Microsoft Graph to send emails.</p>
+            <a class="btn" href="{% url 'automation:mail_signin' %}">
+              <i class="fas fa-sign-in-alt"></i> Sign in with Device Code
+            </a>
+          </div>
+        </div>
+      {% endif %}
+
+      {% if step == 'form' %}
+        <div class="card">
+          <h2 style="margin-bottom: 2rem; color: #1f2937; font-size: 1.5rem;">
+            <i class="fas fa-upload"></i> Upload Files & Configure
+          </h2>
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="form-group">
+              <label for="{{ form.excel_file.id_for_label }}">
+                <i class="fas fa-file-excel"></i> Excel File
+              </label>
+              {{ form.excel_file }}
+              <div class="hint">Upload an .xlsx file with email addresses and company names</div>
+            </div>
+            
+            <div class="form-group">
+              <label for="{{ form.template.id_for_label }}">
+                <i class="fas fa-envelope"></i> Email Template
+              </label>
+              {{ form.template }}
+              <div class="hint">Choose a template for your email content</div>
+            </div>
+            
+         <div class="form-group">
+           <label for="{{ form.attachment.id_for_label }}">
+             <i class="fas fa-paperclip"></i> Attachment
+           </label>
+           {{ form.attachment }}
+           <div class="hint">Upload any file (PDF, DOC, ZIP, etc.) to attach to all emails</div>
+         </div>
+            
+            <div class="checkbox-group">
+              {{ form.dry_run }}
+              <label for="{{ form.dry_run.id_for_label }}">
+                <i class="fas fa-eye"></i> Dry Run (Preview only, don't send emails)
+              </label>
+            </div>
+            
+            <div class="btn-group">
+              <button class="btn" type="submit">
+                <i class="fas fa-search"></i> Preview & Validate
+              </button>
+            </div>
+          </form>
+        </div>
+      {% elif step == 'preview' %}
+        <div class="stats">
+          <div class="stat-card">
+            <div class="number">{{ row_count }}</div>
+            <div class="label">Total Recipients</div>
+          </div>
+          <div class="stat-card">
+            <div class="number">{{ parsed_emails|length }}</div>
+            <div class="label">Valid Emails</div>
+          </div>
+          <div class="stat-card">
+            <div class="number">{% if form.data.dry_run %}Preview{% else %}Send{% endif %}</div>
+            <div class="label">Mode</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 style="margin-bottom: 1.5rem; color: #1f2937; font-size: 1.5rem;">
+            <i class="fas fa-table"></i> Data Preview (First 5 Rows)
+          </h2>
+          <div class="preview-table">{{ preview_html|safe }}</div>
+        </div>
+
+        {% if preview_subject_sample or preview_render_sample %}
+          <div class="card">
+            <h2 style="margin-bottom: 1.5rem; color: #1f2937; font-size: 1.5rem;">
+              <i class="fas fa-eye"></i> Email Preview (Row 1)
+            </h2>
+            <div class="sample-preview">
+              {% if preview_subject_sample %}
+                <div class="subject">
+                  <strong><i class="fas fa-tag"></i> Subject:</strong> {{ preview_subject_sample }}
+                </div>
+              {% endif %}
+              {% if preview_render_sample %}
+                <h4><i class="fas fa-envelope-open"></i> Email Body:</h4>
+                <div class="body">{{ preview_render_sample }}</div>
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
+
+        {% if parsed_emails %}
+          <div class="card">
+            <h2 style="margin-bottom: 1.5rem; color: #1f2937; font-size: 1.5rem;">
+              <i class="fas fa-list"></i> Email Recipients
+            </h2>
+            <div style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0;">
+              <p style="margin-bottom: 1rem; color: #6b7280; font-weight: 500;">
+                <i class="fas fa-info-circle"></i> 
+                Showing first {{ parsed_emails|length }} email addresses from the Excel file
+              </p>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 0.5rem;">
+                {% for e in parsed_emails %}
+                  <div style="background: white; padding: 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0; font-family: monospace; font-size: 0.9rem;">
+                    <i class="fas fa-envelope" style="color: #667eea; margin-right: 0.5rem;"></i>{{ e }}
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        {% endif %}
+
+        <div class="card">
+          <h2 style="margin-bottom: 1.5rem; color: #1f2937; font-size: 1.5rem;">
+            <i class="fas fa-rocket"></i> Ready to {% if form.data.dry_run %}Preview{% else %}Send{% endif %}
+          </h2>
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% for field in form %}
+              {% if field.name != 'excel_file' and field.name != 'attachment' %}
+                <input type="hidden" name="{{ field.name }}" value="{{ field.value|default_if_none:'' }}" />
+              {% endif %}
+            {% endfor %}
+            <input type="hidden" name="confirm_send" value="1" />
+            <div class="btn-group">
+              <button class="btn" type="submit">
+                <i class="fas fa-{% if form.data.dry_run %}eye{% else %}paper-plane{% endif %}"></i>
+                {% if form.data.dry_run %}Run Dry Run{% else %}Send Emails{% endif %}
+              </button>
+              <button class="btn secondary" type="submit" name="action" value="attach_smoke_test">
+                <i class="fas fa-flask"></i> Test Attachments
+              </button>
+              <button id="signinBtn" class="btn secondary" type="button">
+                <i class="fas fa-sign-in-alt"></i> Sign in to Microsoft
+              </button>
+              <a class="btn secondary" href="?reset=1">
+                <i class="fas fa-undo"></i> Start Over
+              </a>
+            </div>
+          </form>
+        </div>
+        <div id="signinInfo" style="margin-top: 1rem;"></div>
+        <script>
+async function postStart(url) {
+  const formData = new FormData();
+  const resp = await fetch(url, { method: 'POST', headers: { 'X-CSRFToken': getCookie('csrftoken') }, body: formData });
+  return resp.json();
+}
+async function getJson(url) {
+  const resp = await fetch(url);
+  return resp.json();
+}
+function getCookie(name) { const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)'); return v ? v.pop() : ''; }
+
+document.getElementById('signinBtn')?.addEventListener('click', async () => {
+  try {
+    const start = await postStart('{% url "automation:mail_signin_start" %}');
+    if (start.user_code && start.verification_uri) {
+      const info = document.getElementById('signinInfo');
+      info.innerHTML = `
+        <div class="card" style="background: #f0f9ff; border: 2px solid #0ea5e9;">
+          <h3 style="color: #0c4a6e; margin-bottom: 1rem;">
+            <i class="fas fa-external-link-alt"></i> Microsoft Sign-in Required
+          </h3>
+          <p style="margin-bottom: 1rem; color: #0c4a6e;">
+            Visit the link below and enter the code to authorize email sending:
+          </p>
+          <div style="background: white; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+            <p style="margin-bottom: 0.5rem;"><strong>Code:</strong></p>
+            <div style="font-family: monospace; font-size: 1.2rem; font-weight: bold; color: #0c4a6e; background: #e0f2fe; padding: 0.5rem; border-radius: 4px; text-align: center;">${start.user_code}</div>
+          </div>
+          <a href="${start.verification_uri}" target="_blank" class="btn" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-external-link-alt"></i> Open Microsoft Sign-in
+          </a>
+        </div>
+      `;
+      let timer = setInterval(async () => {
+        try {
+          const res = await getJson('{% url "automation:mail_signin_poll" %}');
+          if (res.status === 'ok') { 
+            clearInterval(timer); 
+            info.innerHTML = `
+              <div class="card" style="background: #f0fdf4; border: 2px solid #16a34a;">
+                <h3 style="color: #166534; margin-bottom: 1rem;">
+                  <i class="fas fa-check-circle"></i> Successfully Signed In!
+                </h3>
+                <p style="color: #166534;">You can now send emails. Refresh the page to continue.</p>
+              </div>
+            `; 
+          }
+          else if (res.status === 'error') { 
+            clearInterval(timer); 
+            info.innerHTML = `
+              <div class="error">
+                <i class="fas fa-exclamation-triangle"></i> 
+                Sign-in failed: ${res.detail || 'Unknown error'}
+              </div>
+            `; 
+          }
+        } catch (e) { /* ignore */ }
+      }, 2000);
+    } else {
+      document.getElementById('signinInfo').innerHTML = "<div class='error'><i class='fas fa-exclamation-triangle'></i> Could not start device code flow.</div>";
+    }
+  } catch (e) {
+    document.getElementById('signinInfo').innerHTML = "<div class='error'><i class='fas fa-exclamation-triangle'></i> Failed to start sign in.</div>";
+  }
+});
+        </script>
+      {% elif step == 'done' %}
+        <div class="card">
+          <h2 style="margin-bottom: 1.5rem; color: #1f2937; font-size: 1.5rem;">
+            <i class="fas fa-clipboard-list"></i> Processing Results
+          </h2>
+          <div class="logs">
+            {% for line in logs %}
+              {{ line }}
+              {% if not forloop.last %}
+              
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+        
+        <div class="card">
+          <div style="text-align: center;">
+            <i class="fas fa-check-circle" style="font-size: 3rem; color: #16a34a; margin-bottom: 1rem;"></i>
+            <h3 style="margin-bottom: 1rem; color: #1f2937;">Processing Complete!</h3>
+            <p style="margin-bottom: 2rem; color: #6b7280;">
+              {% if form.data.dry_run %}
+                Dry run completed. Check the logs above to see what would have been sent.
+              {% else %}
+                Email sending completed. Check the logs above for details.
+              {% endif %}
+            </p>
+            <div class="btn-group">
+              {% if request.session.report_path %}
+                <a href="{% url 'automation:download_report' %}" class="btn">
+                  <i class="fas fa-file-excel"></i> Download Excel Report
+                </a>
+              {% endif %}
+              <a class="btn" href="?reset=1">
+                <i class="fas fa-plus"></i> Send More Emails
+              </a>
+              <a class="btn secondary" href="{% url 'automation:dashboard' %}">
+                <i class="fas fa-home"></i> Back to Dashboard
+              </a>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </body>
+  </html>
+
+

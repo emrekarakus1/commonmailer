@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sign Up - Portal</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        color: #1f2937;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+      }
+      
+      .signup-container {
+        background: white;
+        border-radius: 20px;
+        padding: 3rem;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2);
+        width: 100%;
+        max-width: 480px;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .signup-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      }
+      
+      .header {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+      
+      .header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: #1f2937;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+      }
+      
+      .header .icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      }
+      
+      .header p {
+        color: #6b7280;
+        font-size: 1rem;
+        font-weight: 400;
+      }
+      
+      .form-group {
+        margin-bottom: 1.5rem;
+      }
+      
+      .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #374151;
+        font-size: 0.9rem;
+      }
+      
+      .form-group input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #f9fafb;
+      }
+      
+      .form-group input:focus {
+        outline: none;
+        border-color: #10b981;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+      }
+      
+      .errorlist {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #dc2626;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+        list-style: none;
+      }
+      
+      .errorlist li {
+        margin: 0;
+      }
+      
+      .btn {
+        width: 100%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        margin-bottom: 1.5rem;
+      }
+      
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+      }
+      
+      .login-link {
+        text-align: center;
+        color: #6b7280;
+        font-size: 0.9rem;
+      }
+      
+      .login-link a {
+        color: #10b981;
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.3s ease;
+      }
+      
+      .login-link a:hover {
+        color: #059669;
+      }
+      
+      .back-link {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        color: #6b7280;
+        text-decoration: none;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: color 0.3s ease;
+      }
+      
+      .back-link:hover {
+        color: #10b981;
+      }
+      
+      .password-help {
+        background: #f0f9ff;
+        border: 1px solid #bae6fd;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        margin-top: 0.5rem;
+        font-size: 0.8rem;
+        color: #0369a1;
+      }
+      
+      .password-help ul {
+        margin: 0.5rem 0 0 1rem;
+        padding: 0;
+      }
+      
+      .password-help li {
+        margin: 0.25rem 0;
+      }
+      
+      @media (max-width: 480px) {
+        .signup-container {
+          padding: 2rem;
+          margin: 1rem;
+        }
+        
+        .header h1 {
+          font-size: 1.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="signup-container">
+      <a href="{% url 'home' %}" class="back-link">
+        <i class="fas fa-arrow-left"></i> Back to Home
+      </a>
+      
+      <div class="header">
+        <h1>
+          <div class="icon">
+            <i class="fas fa-user-plus"></i>
+          </div>
+          Create Account
+        </h1>
+        <p>Join us and start automating your emails</p>
+      </div>
+      
+      {% if form.errors %}
+        <div class="errorlist">
+          {% for field, errors in form.errors.items %}
+            {% for error in errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          {% endfor %}
+        </div>
+      {% endif %}
+      
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="{{ form.username.id_for_label }}">
+            <i class="fas fa-user"></i> Username
+          </label>
+          {{ form.username }}
+        </div>
+        
+        <div class="form-group">
+          <label for="{{ form.first_name.id_for_label }}">
+            <i class="fas fa-user"></i> First Name
+          </label>
+          {{ form.first_name }}
+        </div>
+        
+        <div class="form-group">
+          <label for="{{ form.last_name.id_for_label }}">
+            <i class="fas fa-user"></i> Last Name
+          </label>
+          {{ form.last_name }}
+        </div>
+        
+        <div class="form-group">
+          <label for="{{ form.email.id_for_label }}">
+            <i class="fas fa-envelope"></i> Email Address
+          </label>
+          {{ form.email }}
+        </div>
+        
+        <div class="form-group">
+          <label for="{{ form.password1.id_for_label }}">
+            <i class="fas fa-lock"></i> Password
+          </label>
+          {{ form.password1 }}
+          <div class="password-help">
+            <strong>Password requirements:</strong>
+            <ul>
+              <li>At least 8 characters long</li>
+              <li>Cannot be too similar to your username</li>
+              <li>Cannot be a commonly used password</li>
+              <li>Cannot be entirely numeric</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="{{ form.password2.id_for_label }}">
+            <i class="fas fa-lock"></i> Confirm Password
+          </label>
+          {{ form.password2 }}
+        </div>
+        
+        <button class="btn" type="submit">
+          <i class="fas fa-user-plus"></i> Create Account
+        </button>
+      </form>
+      
+      <div class="login-link">
+        Already have an account? <a href="{% url 'login' %}">Sign in here</a>
+      </div>
+    </div>
+  </body>
+</html>
+
+
