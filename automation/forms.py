@@ -41,8 +41,6 @@ class TemplateEditForm(forms.Form):
     body = forms.CharField(widget=forms.Textarea, required=True)
 
 
-class TemplateUploadForm(forms.Form):
-    json_file = forms.FileField(required=True, help_text="Upload a JSON file with templates")
 
 
 

@@ -11,7 +11,7 @@ from io import BytesIO
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 
-from .forms import SignupForm, MailAutomationForm, TemplateEditForm, TemplateUploadForm
+from .forms import SignupForm, MailAutomationForm, TemplateEditForm
 from .exceptions import MailSendError, TemplateNotFoundError, FileProcessingError, ReportGenerationError
 from .services.mailer import send_single_mail, encode_attachment
 from .services.templates import template_service
@@ -461,21 +461,6 @@ def _template_manager_impl(request: HttpRequest) -> HttpResponse:
             else:
                 context["edit_form"] = form
         
-        elif "upload_templates" in request.POST:
-            form = TemplateUploadForm(request.POST, request.FILES)
-            if form.is_valid():
-                try:
-                    uploaded_file = form.cleaned_data["template_file"]
-                    content = uploaded_file.read().decode('utf-8')
-                    template_service.upload_templates_from_json(content)
-                    context["templates"] = template_service.get_templates()
-                    context["success"] = "Templates file uploaded and replaced."
-                except ValueError as e:
-                    context["error"] = f"Failed to parse JSON: {e}"
-            else:
-                context["upload_form"] = form
-    
-    context["upload_form"] = TemplateUploadForm()
     return render(request, "automation/template_manager.html", context)
 
 @login_required
@@ -525,24 +510,6 @@ def template_delete(request: HttpRequest, template_name: str) -> HttpResponse:
     
     return render(request, "automation/template_delete.html", {"template_name": template_name})
 
-@login_required
-def template_upload(request: HttpRequest) -> HttpResponse:
-    """Upload templates from JSON file."""
-    if request.method == "POST":
-        form = TemplateUploadForm(request.POST, request.FILES)
-        if form.is_valid():
-            try:
-                uploaded_file = form.cleaned_data["template_file"]
-                content = uploaded_file.read().decode('utf-8')
-                template_service.upload_templates_from_json(content)
-                messages.success(request, "Templates uploaded successfully.")
-            except ValueError as e:
-                messages.error(request, f"Failed to upload templates: {e}")
-            return redirect("automation:template_manager")
-    else:
-        form = TemplateUploadForm()
-    
-    return render(request, "automation/template_upload.html", {"form": form})
 
 @login_required
 def template_download(request: HttpRequest) -> HttpResponse:

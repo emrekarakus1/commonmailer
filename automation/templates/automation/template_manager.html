@@ -611,53 +611,6 @@
         </div>
       </div>
 
-      <div class="card">
-        <h2>
-          <i class="fas fa-upload"></i> Bulk Upload Templates
-        </h2>
-        <p style="color: #6b7280; margin-bottom: 1.5rem;">
-          Upload a JSON file to replace all existing templates. This will overwrite your current templates.
-        </p>
-        <form method="post" enctype="multipart/form-data">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="upload_json" />
-          
-          <div class="form-group">
-            <label for="id_json_file">
-              <i class="fas fa-file-code"></i> JSON File
-            </label>
-            {{ upload_form.json_file }}
-          </div>
-          
-          <div class="btn-group">
-            <button type="submit" class="btn danger">
-              <i class="fas fa-upload"></i> Upload and Replace All Templates
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <div class="card">
-        <h2>
-          <i class="fas fa-code"></i> JSON Format Guide
-        </h2>
-        <p style="color: #6b7280; margin-bottom: 1.5rem;">
-          Use this JSON structure to create templates. You can use placeholders like <code>{name}</code>, <code>{company}</code> etc.
-        </p>
-        <div class="format-example">
-          <h4><i class="fas fa-info-circle"></i> Example JSON Structure:</h4>
-          <pre>{
-  "Welcome": {
-    "subject": "Welcome {name}!",
-    "body": "&lt;p&gt;Hello {name},&lt;br&gt;&lt;br&gt;Welcome to our service!&lt;/p&gt;"
-  },
-  "Invoice": {
-    "subject": "Invoice for {company}",
-    "body": "&lt;p&gt;Dear {name},&lt;br&gt;&lt;br&gt;Please find your invoice attached.&lt;/p&gt;"
-  }
-}</pre>
-        </div>
-      </div>
     </div>
 
     <script>
