@@ -101,10 +101,39 @@ def collect_files_from_upload(uploaded_files: List, base_tmp_dir: Path) -> Tuple
             logger.debug(f"Extracting RAR to: {tmp_rar_dir}")
             
             try:
-                with rarfile.RarFile(f) as rf:
-                    for member in rf.infolist():
+                # Reset file pointer to beginning
+                f.seek(0)
+                logger.debug(f"Attempting to open RAR file: {fname}")
+                
+                # Save uploaded file to temporary location first
+                temp_rar_path = tmp_root / fname.name
+                with open(temp_rar_path, "wb") as temp_file:
+                    for chunk in f.chunks():
+                        temp_file.write(chunk)
+                logger.debug(f"Saved RAR file to temporary location: {temp_rar_path}")
+                
+                # Check if file is actually a RAR file by reading magic bytes
+                with open(temp_rar_path, "rb") as check_file:
+                    magic = check_file.read(7)
+                    if not magic.startswith(b'Rar!'):
+                        logger.error(f"File {fname} is not a valid RAR file (invalid magic bytes)")
+                        temp_rar_path.unlink()
+                        raise ValueError(f"File {fname} is not a valid RAR archive. Please check the file format.")
+                
+                with rarfile.RarFile(temp_rar_path) as rf:
+                    logger.debug(f"Successfully opened RAR file: {fname}")
+                    members = rf.infolist()
+                    logger.debug(f"RAR file contains {len(members)} members")
+                    
+                    if not members:
+                        logger.warning(f"RAR file {fname} is empty")
+                        temp_rar_path.unlink()
+                        return
+                    
+                    for member in members:
                         # skip directories
                         if member.is_dir():
+                            logger.debug(f"Skipping directory: {member.filename}")
                             continue
                         # avoid path traversal
                         safe_name = Path(member.filename).name
@@ -114,12 +143,28 @@ def collect_files_from_upload(uploaded_files: List, base_tmp_dir: Path) -> Tuple
                         with rf.open(member) as src, open(out_path, "wb") as dst:
                             dst.write(src.read())
                         push_file(out_path)
+                        
+                # Clean up temporary RAR file
+                temp_rar_path.unlink()
+                logger.debug(f"Successfully extracted RAR file: {fname}")
             except rarfile.BadRarFile as e:
                 logger.error(f"Invalid RAR file {fname}: {e}")
-                raise ValueError(f"Invalid RAR file: {fname}")
+                # Clean up temporary file if it exists
+                if 'temp_rar_path' in locals() and temp_rar_path.exists():
+                    temp_rar_path.unlink()
+                raise ValueError(f"Invalid RAR file: {fname}. The file may be corrupted or not a valid RAR archive.")
+            except rarfile.RarCannotExec as e:
+                logger.error(f"RAR executable not found for {fname}: {e}")
+                # Clean up temporary file if it exists
+                if 'temp_rar_path' in locals() and temp_rar_path.exists():
+                    temp_rar_path.unlink()
+                raise ValueError(f"RAR extraction failed: {fname}. Please ensure unrar is installed on the system.")
             except Exception as e:
-                logger.error(f"Error extracting RAR {fname}: {e}")
-                raise ValueError(f"Failed to extract RAR file {fname}: {e}")
+                logger.error(f"Error extracting RAR {fname}: {e}", exc_info=True)
+                # Clean up temporary file if it exists
+                if 'temp_rar_path' in locals() and temp_rar_path.exists():
+                    temp_rar_path.unlink()
+                raise ValueError(f"Failed to extract RAR file {fname}: {str(e)}")
         else:
             # loose file: copy to tmp_root
             out_path = tmp_root / fname.name

@@ -1,0 +1,6 @@
+{
+  "deneme1": {
+    "subject": "deneme",
+    "body": "{name} {company} {email} {companyname} {date} {amount}"
+  }
+}
