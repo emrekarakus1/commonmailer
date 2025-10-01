@@ -88,10 +88,13 @@ class TemplateService:
     def _load_user_templates(self) -> Dict[str, Dict[str, str]]:
         """Load templates for the current user."""
         if not self.user_id:
+            logger.warning("No user_id provided to template service")
             return {}
         
         user_templates_file = Path(f"email_templates_user_{self.user_id}.json")
+        logger.debug(f"Looking for user templates file: {user_templates_file}")
         if not user_templates_file.exists():
+            logger.debug(f"User templates file does not exist: {user_templates_file}")
             return {}
         
         try:
@@ -117,12 +120,15 @@ class TemplateService:
     def _save_user_templates(self, templates: Dict[str, Dict[str, str]]) -> None:
         """Save templates for the current user."""
         if not self.user_id:
+            logger.warning("No user_id provided to template service, cannot save templates")
             return
         
         user_templates_file = Path(f"email_templates_user_{self.user_id}.json")
+        logger.debug(f"Saving user templates to: {user_templates_file}")
         try:
             with open(user_templates_file, "w", encoding="utf-8") as f:
                 json.dump(templates, f, indent=2, ensure_ascii=False)
+            logger.debug(f"Successfully saved {len(templates)} templates for user {self.user_id}")
         except Exception as e:
             logger.error(f"Error saving user templates for user {self.user_id}: {e}")
             raise

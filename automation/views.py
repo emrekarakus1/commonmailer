@@ -430,13 +430,31 @@ def template_manager(request: HttpRequest) -> HttpResponse:
     except Exception as e:
         logger.error(f"Error in template_manager view: {e}", exc_info=True)
         messages.error(request, f"An error occurred while managing templates: {str(e)}")
-        return redirect('/templates/')
+        # Return error page instead of redirecting to avoid infinite loop
+        return render(request, "automation/template_manager.html", {
+            "templates": {},
+            "edit_form": TemplateEditForm(),
+            "error": f"An error occurred: {str(e)}"
+        })
 
 def _template_manager_impl(request: HttpRequest) -> HttpResponse:
     """Main template manager logic."""
     # Create user-specific template service
-    user_template_service = TemplateService(user_id=request.user.id)
-    templates = user_template_service.get_templates()
+    if not request.user.is_authenticated:
+        messages.error(request, "You must be logged in to access templates.")
+        return redirect("automation:login")
+    
+    try:
+        user_id = request.user.id
+        logger.debug(f"Creating template service for user_id: {user_id}")
+        user_template_service = TemplateService(user_id=user_id)
+        templates = user_template_service.get_templates()
+        logger.debug(f"Loaded {len(templates)} templates for user {user_id}")
+    except Exception as e:
+        logger.error(f"Error creating template service: {e}", exc_info=True)
+        templates = {}
+        user_template_service = None
+    
     context = {"templates": templates}
     
     # Handle edit parameter
@@ -453,6 +471,17 @@ def _template_manager_impl(request: HttpRequest) -> HttpResponse:
     context["edit_form"] = edit_form
     
     if request.method == "POST":
+        if not user_template_service:
+            # Try to create template service again
+            try:
+                user_id = request.user.id
+                user_template_service = TemplateService(user_id=user_id)
+                logger.info(f"Successfully created template service for user {user_id} on retry")
+            except Exception as e:
+                logger.error(f"Failed to create template service on retry: {e}")
+                messages.error(request, f"Template service is not available: {str(e)}")
+                return render(request, "automation/template_manager.html", context)
+            
         if "delete_template" in request.POST:
             template_name = request.POST.get("template_name")
             if template_name:
