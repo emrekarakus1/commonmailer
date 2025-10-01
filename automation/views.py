@@ -604,7 +604,15 @@ def download_templates(request: HttpRequest) -> HttpResponse:
 
 def delete_template(request: HttpRequest, name: str) -> HttpResponse:
     """Delete a template."""
-    return template_delete(request, name)
+    try:
+        template_service.delete_template(name)
+        messages.success(request, f"Template '{name}' deleted successfully.")
+    except TemplateNotFoundError:
+        messages.error(request, f"Template '{name}' not found.")
+    except Exception as e:
+        messages.error(request, f"Failed to delete template: {e}")
+    
+    return redirect("automation:template_manager")
 
 def download_report(request: HttpRequest) -> HttpResponse:
     """Download Excel report."""

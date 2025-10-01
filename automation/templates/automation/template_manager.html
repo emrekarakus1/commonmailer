@@ -288,6 +288,123 @@
         overflow-x: auto;
       }
       
+      /* Variable Palette Styles */
+      .variable-palette {
+        background: #f8fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+      }
+      
+      .variable-palette h3 {
+        color: #1e293b;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      
+      .variable-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      
+      .variable-item {
+        background: white;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 0.75rem;
+        text-align: center;
+        cursor: grab;
+        transition: all 0.3s ease;
+        user-select: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      
+      .variable-item:hover {
+        border-color: #667eea;
+        background: #f0f4ff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+      }
+      
+      .variable-item:active {
+        cursor: grabbing;
+        transform: scale(0.95);
+      }
+      
+      .variable-item i {
+        font-size: 1.2rem;
+        color: #667eea;
+      }
+      
+      .variable-item span {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #374151;
+      }
+      
+      .variable-help {
+        background: #e0f2fe;
+        border: 1px solid #b3e5fc;
+        border-radius: 8px;
+        padding: 0.75rem;
+        margin: 0;
+        font-size: 0.9rem;
+        color: #0277bd;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      
+      .drop-zone-indicator {
+        font-size: 0.8rem;
+        color: #6b7280;
+        font-weight: 400;
+        margin-left: 0.5rem;
+        opacity: 0.7;
+      }
+      
+      .form-group input:focus,
+      .form-group textarea:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+      
+      .form-group.drag-over {
+        position: relative;
+      }
+      
+      .form-group.drag-over::after {
+        content: 'Drop variable here';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(102, 126, 234, 0.9);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        z-index: 10;
+        pointer-events: none;
+      }
+      
+      .form-group.drag-over input,
+      .form-group.drag-over textarea {
+        border-color: #667eea;
+        background: rgba(102, 126, 234, 0.05);
+      }
+      
       @media (max-width: 768px) {
         .container {
           padding: 1rem;
@@ -309,6 +426,18 @@
         
         .templates-table .actions {
           flex-direction: column;
+        }
+        
+        .variable-grid {
+          grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        }
+        
+        .variable-item {
+          padding: 0.5rem;
+        }
+        
+        .variable-item span {
+          font-size: 0.8rem;
         }
       }
     </style>
@@ -405,7 +534,43 @@
           <h2>
             <i class="fas fa-plus-circle"></i> Create / Edit Template
           </h2>
-          <form method="post">
+          
+          <!-- Variable Palette -->
+          <div class="variable-palette">
+            <h3><i class="fas fa-puzzle-piece"></i> Available Variables</h3>
+            <div class="variable-grid">
+              <div class="variable-item" draggable="true" data-variable="{name}">
+                <i class="fas fa-user"></i>
+                <span>Name</span>
+              </div>
+              <div class="variable-item" draggable="true" data-variable="{company}">
+                <i class="fas fa-building"></i>
+                <span>Company</span>
+              </div>
+              <div class="variable-item" draggable="true" data-variable="{email}">
+                <i class="fas fa-envelope"></i>
+                <span>Email</span>
+              </div>
+              <div class="variable-item" draggable="true" data-variable="{companyname}">
+                <i class="fas fa-industry"></i>
+                <span>Company Name</span>
+              </div>
+              <div class="variable-item" draggable="true" data-variable="{date}">
+                <i class="fas fa-calendar"></i>
+                <span>Date</span>
+              </div>
+              <div class="variable-item" draggable="true" data-variable="{amount}">
+                <i class="fas fa-dollar-sign"></i>
+                <span>Amount</span>
+              </div>
+            </div>
+            <p class="variable-help">
+              <i class="fas fa-info-circle"></i> 
+              Drag variables into the subject or body fields to use them
+            </p>
+          </div>
+          
+          <form method="post" id="templateForm">
             {% csrf_token %}
             <input type="hidden" name="action" value="save_template" />
             
@@ -419,6 +584,7 @@
             <div class="form-group">
               <label for="id_subject">
                 <i class="fas fa-heading"></i> Email Subject
+                <span class="drop-zone-indicator">Drop variables here</span>
               </label>
               {{ edit_form.subject }}
             </div>
@@ -426,6 +592,7 @@
             <div class="form-group">
               <label for="id_body">
                 <i class="fas fa-align-left"></i> Email Body
+                <span class="drop-zone-indicator">Drop variables here</span>
               </label>
               {{ edit_form.body }}
             </div>
@@ -492,6 +659,115 @@
         </div>
       </div>
     </div>
+
+    <script>
+      // Drag and Drop functionality for template variables
+      document.addEventListener('DOMContentLoaded', function() {
+        const variableItems = document.querySelectorAll('.variable-item');
+        const subjectInput = document.querySelector('#id_subject');
+        const bodyTextarea = document.querySelector('#id_body');
+        const subjectGroup = subjectInput.closest('.form-group');
+        const bodyGroup = bodyTextarea.closest('.form-group');
+
+        // Make variable items draggable
+        variableItems.forEach(item => {
+          item.addEventListener('dragstart', function(e) {
+            e.dataTransfer.setData('text/plain', this.dataset.variable);
+            this.style.opacity = '0.5';
+          });
+
+          item.addEventListener('dragend', function(e) {
+            this.style.opacity = '1';
+          });
+        });
+
+        // Subject input drop zone
+        subjectGroup.addEventListener('dragover', function(e) {
+          e.preventDefault();
+          this.classList.add('drag-over');
+        });
+
+        subjectGroup.addEventListener('dragleave', function(e) {
+          if (!this.contains(e.relatedTarget)) {
+            this.classList.remove('drag-over');
+          }
+        });
+
+        subjectGroup.addEventListener('drop', function(e) {
+          e.preventDefault();
+          this.classList.remove('drag-over');
+          
+          const variable = e.dataTransfer.getData('text/plain');
+          const cursorPos = subjectInput.selectionStart;
+          const textBefore = subjectInput.value.substring(0, cursorPos);
+          const textAfter = subjectInput.value.substring(cursorPos);
+          
+          subjectInput.value = textBefore + variable + textAfter;
+          subjectInput.focus();
+          subjectInput.setSelectionRange(cursorPos + variable.length, cursorPos + variable.length);
+        });
+
+        // Body textarea drop zone
+        bodyGroup.addEventListener('dragover', function(e) {
+          e.preventDefault();
+          this.classList.add('drag-over');
+        });
+
+        bodyGroup.addEventListener('dragleave', function(e) {
+          if (!this.contains(e.relatedTarget)) {
+            this.classList.remove('drag-over');
+          }
+        });
+
+        bodyGroup.addEventListener('drop', function(e) {
+          e.preventDefault();
+          this.classList.remove('drag-over');
+          
+          const variable = e.dataTransfer.getData('text/plain');
+          const cursorPos = bodyTextarea.selectionStart;
+          const textBefore = bodyTextarea.value.substring(0, cursorPos);
+          const textAfter = bodyTextarea.value.substring(cursorPos);
+          
+          bodyTextarea.value = textBefore + variable + textAfter;
+          bodyTextarea.focus();
+          bodyTextarea.setSelectionRange(cursorPos + variable.length, cursorPos + variable.length);
+        });
+
+        // Click to insert functionality
+        variableItems.forEach(item => {
+          item.addEventListener('click', function() {
+            const variable = this.dataset.variable;
+            const activeElement = document.activeElement;
+            
+            if (activeElement === subjectInput || activeElement === bodyTextarea) {
+              const cursorPos = activeElement.selectionStart;
+              const textBefore = activeElement.value.substring(0, cursorPos);
+              const textAfter = activeElement.value.substring(cursorPos);
+              
+              activeElement.value = textBefore + variable + textAfter;
+              activeElement.focus();
+              activeElement.setSelectionRange(cursorPos + variable.length, cursorPos + variable.length);
+            } else {
+              // If no input is focused, focus on body textarea and insert
+              bodyTextarea.focus();
+              const cursorPos = bodyTextarea.selectionStart;
+              const textBefore = bodyTextarea.value.substring(0, cursorPos);
+              const textAfter = bodyTextarea.value.substring(cursorPos);
+              
+              bodyTextarea.value = textBefore + variable + textAfter;
+              bodyTextarea.setSelectionRange(cursorPos + variable.length, cursorPos + variable.length);
+            }
+          });
+        });
+
+        // Add visual feedback for clickable variables
+        variableItems.forEach(item => {
+          item.addEventListener('mouseenter', function() {
+            this.style.cursor = 'pointer';
+          });
+        });
+      });
+    </script>
   </body>
   </html>
 
