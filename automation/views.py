@@ -446,20 +446,23 @@ def _template_manager_impl(request: HttpRequest) -> HttpResponse:
                     messages.error(request, f"Template '{template_name}' not found.")
                     return redirect("automation:template_manager")
         
-        elif "save_template" in request.POST:
+        elif "action" in request.POST and request.POST["action"] == "save_template":
             form = TemplateEditForm(request.POST)
             if form.is_valid():
                 try:
                     template_name = form.cleaned_data["name"]
                     subject = form.cleaned_data["subject"]
                     body = form.cleaned_data["body"]
+                    logger.info(f"Saving template: {template_name}")
                     template_service.save_template(template_name, subject, body)
                     messages.success(request, f"Template '{template_name}' saved successfully.")
                     return redirect("automation:template_manager")
                 except Exception as e:
+                    logger.error(f"Failed to save template: {e}")
                     messages.error(request, f"Failed to save template: {e}")
             else:
                 # Form validation errors
+                logger.error(f"Form validation failed: {form.errors}")
                 for field, errors in form.errors.items():
                     for error in errors:
                         messages.error(request, f"{field}: {error}")

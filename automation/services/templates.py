@@ -61,6 +61,7 @@ class TemplateService:
         templates = self.get_templates()
         templates[name] = {"subject": subject, "body": body}
         save_email_templates(templates)
+        # Update cache
         self._templates_cache = templates
         logger.info(f"Template '{name}' saved")
     
