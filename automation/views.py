@@ -70,14 +70,15 @@ def _process_attachments(request: HttpRequest) -> List[Dict[str, Any]]:
     if attachment_file:
         logger.debug(f"Processing attachment: {attachment_file.name}, Size: {attachment_file.size}")
         
-        if attachment_file.name.lower().endswith('.zip'):
-            # ZIP file - extract and collect files
+        if attachment_file.name.lower().endswith(('.zip', '.rar')):
+            # ZIP or RAR file - extract and collect files
             from django.conf import settings
             import tempfile as tf
             
             base_temp_dir = Path(getattr(settings, 'FILE_UPLOAD_TEMP_DIR', tf.gettempdir()))
             uploaded_files, temp_files_dir = file_processor.process_uploaded_files([attachment_file])
-            logger.debug(f"Extracted ZIP: {len(uploaded_files)} files")
+            file_type = "ZIP" if attachment_file.name.lower().endswith('.zip') else "RAR"
+            logger.debug(f"Extracted {file_type}: {len(uploaded_files)} files")
             
             request.session["uploaded_files"] = uploaded_files
             request.session["temp_files_dir"] = temp_files_dir
@@ -189,24 +190,38 @@ def _send_emails(
             attachments = []
             
             if uploaded_files:
+                logger.debug(f"Processing {len(uploaded_files)} uploaded files for company: {company_name}")
                 if company_column not in df.columns:
                     # Attach all files
+                    logger.debug("No company column - attaching all files")
                     for file_info in uploaded_files:
+                        logger.debug(f"Processing file: {file_info['name']}")
                         if "graph_data" in file_info:
                             attachments.append(file_info["graph_data"])
+                            logger.debug(f"Added pre-encoded file: {file_info['name']}")
                         else:
                             attachment_data = build_graph_file_attachment_from_path(file_info["path"], file_info["content_type"])
                             attachments.append(attachment_data)
+                            logger.debug(f"Encoded and added file: {file_info['name']}")
                 elif pd.notna(company_name) and str(company_name).strip():
                     company_lower = str(company_name).strip().lower()
+                    logger.debug(f"Matching files for company: {company_lower}")
                     for file_info in uploaded_files:
                         filename_lower = file_info["name"].lower()
+                        logger.debug(f"Checking file: {file_info['name']} (lower: {filename_lower})")
                         if company_lower in filename_lower:
+                            logger.debug(f"Match found: {file_info['name']} contains {company_lower}")
                             if "graph_data" in file_info:
                                 attachments.append(file_info["graph_data"])
+                                logger.debug(f"Added pre-encoded file: {file_info['name']}")
                             else:
                                 attachment_data = build_graph_file_attachment_from_path(file_info["path"], file_info["content_type"])
                                 attachments.append(attachment_data)
+                                logger.debug(f"Encoded and added file: {file_info['name']}")
+                        else:
+                            logger.debug(f"No match: {file_info['name']} does not contain {company_lower}")
+                
+                logger.debug(f"Total attachments prepared: {len(attachments)}")
 
             # Track result
             attachment_filenames = []
