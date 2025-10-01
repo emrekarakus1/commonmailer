@@ -208,6 +208,16 @@
         font-weight: 500;
       }
       
+      .info {
+        background: #eff6ff;
+        color: #2563eb;
+        padding: 1rem;
+        border-radius: 12px;
+        border-left: 4px solid #2563eb;
+        margin-bottom: 1.5rem;
+        font-weight: 500;
+      }
+      
       .templates-table {
         overflow-x: auto;
         border-radius: 12px;
@@ -466,9 +476,19 @@
       
       {% if messages %}
         {% for message in messages %}
-          <div class="error">
-            <i class="fas fa-exclamation-triangle"></i> {{ message }}
-          </div>
+          {% if message.tags == 'success' %}
+            <div class="success">
+              <i class="fas fa-check-circle"></i> {{ message }}
+            </div>
+          {% elif message.tags == 'error' %}
+            <div class="error">
+              <i class="fas fa-exclamation-triangle"></i> {{ message }}
+            </div>
+          {% else %}
+            <div class="info">
+              <i class="fas fa-info-circle"></i> {{ message }}
+            </div>
+          {% endif %}
         {% endfor %}
       {% endif %}
       
