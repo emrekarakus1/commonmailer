@@ -459,6 +459,10 @@ def _template_manager_impl(request: HttpRequest) -> HttpResponse:
                 except Exception as e:
                     messages.error(request, f"Failed to save template: {e}")
             else:
+                # Form validation errors
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"{field}: {error}")
                 context["edit_form"] = form
         
     return render(request, "automation/template_manager.html", context)
