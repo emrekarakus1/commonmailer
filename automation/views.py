@@ -308,6 +308,16 @@ def _mail_automation_impl(request: HttpRequest) -> HttpResponse:
     """Main mail automation logic."""
     context = {"step": "form"}
     
+    # Check Microsoft Graph authentication status
+    try:
+        from .services.graph_client import acquire_token_silent
+        token = acquire_token_silent()
+        context["has_auth"] = token is not None
+        context["signin_required"] = token is None
+    except Exception:
+        context["has_auth"] = False
+        context["signin_required"] = True
+    
     # Handle reset flow
     if request.method == "GET" and request.GET.get("reset") == "1":
         try:
@@ -401,8 +411,12 @@ def _mail_automation_impl(request: HttpRequest) -> HttpResponse:
                         _cleanup_session_files(request)
                         
                     except NeedsLoginError:
-                        messages.error(request, "Please sign in via Device Code first.")
-                        return redirect("automation:mail_automation")
+                        messages.error(request, "Please sign in with Microsoft Graph to send emails.")
+                        context["signin_required"] = True
+                        context["has_auth"] = False
+                        context["step"] = "form"
+                        context["form"] = form
+                        return render(request, "automation/mail_automation.html", context)
                     except MailSendError as e:
                         messages.error(request, f"Mail sending failed: {e}")
                         return redirect("automation:mail_automation")
@@ -590,37 +604,43 @@ def landing(request: HttpRequest) -> HttpResponse:
 
 def mail_signin_start(request: HttpRequest) -> HttpResponse:
     """Start Microsoft Graph sign-in process."""
+    from django.http import JsonResponse
     from .services.graph_client import start_device_code_flow
     try:
         device_code_info = start_device_code_flow()
-        request.session['device_code'] = device_code_info['device_code']
-        request.session['user_code'] = device_code_info['user_code']
-        request.session['verification_uri'] = device_code_info['verification_uri']
-        request.session['expires_in'] = device_code_info['expires_in']
-        return render(request, "automation/device_code.html", {
-            'user_code': device_code_info['user_code'],
-            'verification_uri': device_code_info['verification_uri']
+        if not device_code_info:
+            return JsonResponse({"error": "Failed to start device code flow"}, status=500)
+        
+        # Store the full flow in session for polling
+        request.session['device_code_flow'] = device_code_info
+        request.session['device_code'] = device_code_info.get('device_code', '')
+        request.session['user_code'] = device_code_info.get('user_code', '')
+        request.session['verification_uri'] = device_code_info.get('verification_uri', '')
+        request.session['expires_in'] = device_code_info.get('expires_in', 900)
+        
+        return JsonResponse({
+            'user_code': device_code_info.get('user_code', ''),
+            'verification_uri': device_code_info.get('verification_uri', 'https://microsoft.com/devicelogin')
         })
     except Exception as e:
-        messages.error(request, f"Failed to start sign-in: {str(e)}")
-        return redirect("automation:mail_automation")
+        logger.error(f"Failed to start sign-in: {e}", exc_info=True)
+        return JsonResponse({"error": str(e)}, status=500)
 
 def mail_signin_poll(request: HttpRequest) -> HttpResponse:
     """Poll for device code completion."""
-    from .services.graph_client import poll_device_code
-    device_code = request.session.get('device_code')
-    if not device_code:
-        return HttpResponse("No device code found", status=400)
+    from django.http import JsonResponse
+    from .services.graph_client import device_code_poll
+    
+    device_code_flow = request.session.get('device_code_flow')
+    if not device_code_flow:
+        return JsonResponse({"status": "error", "detail": "No device code flow found"}, status=400)
     
     try:
-        result = poll_device_code(device_code)
-        if result:
-            messages.success(request, "Successfully signed in!")
-            return redirect("automation:mail_automation")
-        else:
-            return HttpResponse("Still waiting...", status=202)
+        result = device_code_poll(device_code_flow, timeout=2)
+        return JsonResponse(result)
     except Exception as e:
-        return HttpResponse(f"Error: {str(e)}", status=500)
+        logger.error(f"Error polling device code: {e}", exc_info=True)
+        return JsonResponse({"status": "error", "detail": str(e)}, status=500)
 
 def download_templates(request: HttpRequest) -> HttpResponse:
     """Download templates as JSON file."""

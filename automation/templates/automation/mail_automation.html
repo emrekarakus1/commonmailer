@@ -350,9 +350,9 @@
             <i class="fas fa-sign-in-alt" style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;"></i>
             <h3 style="margin-bottom: 1rem;">Microsoft Graph Authentication Required</h3>
             <p style="margin-bottom: 2rem; color: #6b7280;">You need to sign in to Microsoft Graph to send emails.</p>
-            <a class="btn" href="{% url 'automation:mail_signin' %}">
-              <i class="fas fa-sign-in-alt"></i> Sign in with Device Code
-            </a>
+            <button type="button" class="btn" onclick="startSignIn()">
+              <i class="fas fa-sign-in-alt"></i> Sign in with Microsoft
+            </button>
           </div>
         </div>
       {% endif %}
@@ -508,7 +508,7 @@ async function getJson(url) {
 }
 function getCookie(name) { const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)'); return v ? v.pop() : ''; }
 
-document.getElementById('signinBtn')?.addEventListener('click', async () => {
+async function startSignIn() {
   try {
     const start = await postStart('{% url "automation:mail_signin_start" %}');
     if (start.user_code && start.verification_uri) {
@@ -559,9 +559,11 @@ document.getElementById('signinBtn')?.addEventListener('click', async () => {
       document.getElementById('signinInfo').innerHTML = "<div class='error'><i class='fas fa-exclamation-triangle'></i> Could not start device code flow.</div>";
     }
   } catch (e) {
-    document.getElementById('signinInfo').innerHTML = "<div class='error'><i class='fas fa-exclamation-triangle'></i> Failed to start sign in.</div>";
+    alert("Failed to start sign in: " + e.message);
   }
-});
+}
+
+document.getElementById('signinBtn')?.addEventListener('click', startSignIn);
         </script>
       {% elif step == 'done' %}
         <div class="card">

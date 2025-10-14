@@ -81,6 +81,11 @@ def device_code_start() -> Optional[dict]:
     return flow
 
 
+def start_device_code_flow() -> Optional[dict]:
+    """Alias for device_code_start for backwards compatibility."""
+    return device_code_start()
+
+
 def device_code_poll(flow: dict, timeout: int = 2) -> dict:
     try:
         app = get_app()
@@ -94,6 +99,13 @@ def device_code_poll(flow: dict, timeout: int = 2) -> dict:
         return {"status": "error", "detail": getattr(e, "error", str(e))}
     except Exception as e:
         return {"status": "error", "detail": str(e)}
+
+
+def poll_device_code(device_code: str, timeout: int = 2) -> Optional[dict]:
+    """Alias for device_code_poll for backwards compatibility."""
+    # Note: This expects a device code string, but the actual flow needs the full flow dict
+    # This is kept for compatibility but may need the full flow dict stored in session
+    return device_code_poll({"device_code": device_code}, timeout=timeout)
 
 
 def send_mail(access_token: str, message_payload: dict, timeout: int = 15) -> bool:
