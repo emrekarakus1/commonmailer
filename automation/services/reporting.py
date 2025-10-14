@@ -4,11 +4,53 @@ Reporting service for generating Excel reports.
 import logging
 from typing import List, Dict, Any, Optional
 from pathlib import Path
+import io
 
 from ..exceptions import ReportGenerationError
-from reports.utils import generate_excel_report
 
 logger = logging.getLogger(__name__)
+
+# Try to import from reports module, otherwise use fallback implementation
+try:
+    from reports.utils import generate_excel_report
+except ModuleNotFoundError:
+    logger.warning("reports.utils not found, using fallback Excel generation")
+    
+    def generate_excel_report(
+        rows,
+        output_path: Optional[str] = None,
+        sheet_name: str = "Report"
+    ) -> Optional[bytes]:
+        """
+        Fallback Excel report generator using pandas and xlsxwriter directly.
+        """
+        import pandas as pd
+        
+        # Convert to DataFrame if needed
+        if isinstance(rows, pd.DataFrame):
+            df = rows.copy()
+        else:
+            rows = list(rows or [])
+            if not rows:
+                raise ValueError("No data to generate report from")
+            df = pd.DataFrame(rows)
+        
+        if df.empty:
+            raise ValueError("DataFrame is empty, cannot generate report")
+        
+        if output_path:
+            # Save to file
+            import os
+            os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
+            with pd.ExcelWriter(output_path, engine="xlsxwriter") as writer:
+                df.to_excel(writer, index=False, sheet_name=sheet_name)
+            return None
+        else:
+            # Return bytes for HTTP response
+            buf = io.BytesIO()
+            with pd.ExcelWriter(buf, engine="xlsxwriter") as writer:
+                df.to_excel(writer, index=False, sheet_name=sheet_name)
+            return buf.getvalue()
 
 
 class ReportingService:
