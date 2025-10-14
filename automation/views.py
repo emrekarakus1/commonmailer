@@ -185,6 +185,15 @@ def _send_emails(
             to_addr = str(row[email_column])
             sub, body = render_subject_body(subject, template_body, row.to_dict())
             
+            # Get CC emails if present
+            cc_emails = []
+            if 'cc' in df.columns:
+                cc_value = row.get('cc', '')
+                if pd.notna(cc_value) and str(cc_value).strip():
+                    # Support multiple CC emails separated by semicolon or comma
+                    cc_list = str(cc_value).replace(';', ',').split(',')
+                    cc_emails = [cc.strip() for cc in cc_list if cc.strip()]
+            
             # Company name matching for attachments
             company_name = row.get(company_column, "") if company_column in df.columns else ""
             attachments = []
@@ -246,14 +255,15 @@ def _send_emails(
 
             try:
                 # Send email using service
-                send_single_mail(to_addr, sub, body, attachments, timeout=15)
+                send_single_mail(to_addr, sub, body, attachments, cc_emails=cc_emails, timeout=15)
                 
                 if attachments:
                     attachment_info = f" (with {len(attachments)} attachments: {'; '.join(attachment_filenames)})"
                 else:
                     attachment_info = " (no attachment)"
                 
-                logs.append(f"Sent to {to_addr}{attachment_info}")
+                cc_info = f" CC: {', '.join(cc_emails)}" if cc_emails else ""
+                logs.append(f"Sent to {to_addr}{attachment_info}{cc_info}")
                 
             except Exception as e:
                 result_row["status"] = "ERROR"

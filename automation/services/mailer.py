@@ -21,7 +21,8 @@ def build_message_payload(
     to_email: str,
     subject: str,
     body: str,
-    attachments: Optional[List[Dict[str, str]]] = None
+    attachments: Optional[List[Dict[str, str]]] = None,
+    cc_emails: Optional[List[str]] = None
 ) -> Dict[str, Any]:
     """
     Build Microsoft Graph message payload.
@@ -31,6 +32,7 @@ def build_message_payload(
         subject: Email subject
         body: Email body (HTML)
         attachments: List of attachment objects
+        cc_emails: List of CC email addresses
         
     Returns:
         Message payload dictionary
@@ -43,6 +45,9 @@ def build_message_payload(
     
     if attachments:
         payload["attachments"] = attachments
+    
+    if cc_emails:
+        payload["ccRecipients"] = [{"emailAddress": {"address": cc}} for cc in cc_emails if cc and cc.strip()]
         
     return payload
 
@@ -77,6 +82,7 @@ def send_single_mail(
     subject: str,
     body: str,
     attachments: Optional[List[Dict[str, str]]] = None,
+    cc_emails: Optional[List[str]] = None,
     timeout: int = 15
 ) -> bool:
     """
@@ -87,6 +93,7 @@ def send_single_mail(
         subject: Email subject
         body: Email body (HTML)
         attachments: List of attachment objects
+        cc_emails: List of CC email addresses
         timeout: Request timeout in seconds
         
     Returns:
@@ -98,7 +105,7 @@ def send_single_mail(
     """
     try:
         access_token = acquire_token_silent_or_fail()
-        message_payload = build_message_payload(to_email, subject, body, attachments)
+        message_payload = build_message_payload(to_email, subject, body, attachments, cc_emails)
         
         if attachments:
             return send_mail_with_attachments(access_token, message_payload, attachments, timeout)
