@@ -138,8 +138,8 @@ tmp_uploads/
 *.sqlite3
 *.db
 
-# Email templates
-email_templates.json
+# Email templates (user-specific only)
+email_templates_user_*.json
 
 # MSAL cache
 msal_cache.bin

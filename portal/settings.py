@@ -145,7 +145,12 @@ FILE_UPLOAD_HANDLERS = [
 
 # Create temp directory for uploads
 FILE_UPLOAD_TEMP_DIR = os.path.join(BASE_DIR, "tmp_uploads")
-os.makedirs(FILE_UPLOAD_TEMP_DIR, exist_ok=True)
+try:
+    os.makedirs(FILE_UPLOAD_TEMP_DIR, exist_ok=True)
+except Exception:
+    # Fallback to system temp if directory creation fails
+    import tempfile
+    FILE_UPLOAD_TEMP_DIR = tempfile.gettempdir()
 
 # Logging configuration
 LOGGING = {

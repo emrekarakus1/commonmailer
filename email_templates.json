@@ -1,0 +1,14 @@
+{
+  "Welcome": {
+    "subject": "Welcome to our service, {name}!",
+    "body": "<p>Hello {name},</p><p>Welcome to our email automation platform!</p><p>We're excited to have you on board.</p><p>Best regards,<br/>The Team</p>"
+  },
+  "Reminder": {
+    "subject": "Reminder: {subject}",
+    "body": "<p>Hi {name},</p><p>This is a friendly reminder about: {subject}</p><p>Date: {date}</p><p>Thank you!</p>"
+  },
+  "Invoice": {
+    "subject": "Invoice for {company_name}",
+    "body": "<p>Dear {name},</p><p>Please find attached the invoice for {company_name}.</p><p>Amount: {amount}</p><p>Due date: {date}</p><p>Best regards</p>"
+  }
+}
