@@ -758,7 +758,7 @@ def signup(request: HttpRequest) -> HttpResponse:
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect("automation:dashboard")
+            return redirect("dashboard")
     else:
         form = SignupForm()
     
