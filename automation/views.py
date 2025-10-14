@@ -771,6 +771,95 @@ def _handle_attachment_smoke_test(request: HttpRequest) -> HttpResponse:
     
     return redirect("automation:mail_automation")
 
+def download_excel_template(request: HttpRequest) -> HttpResponse:
+    """Download Excel template for mail automation."""
+    import pandas as pd
+    from io import BytesIO
+    
+    # Create sample data with all commonly used columns
+    sample_data = {
+        'Email': [
+            'john.doe@companyA.com',
+            'jane.smith@companyB.com',
+            'bob.johnson@companyC.com'
+        ],
+        'CompanyName': [
+            'Company A',
+            'Company B',
+            'Company C'
+        ],
+        'Name': [
+            'John Doe',
+            'Jane Smith',
+            'Bob Johnson'
+        ],
+        'Date': [
+            '2025-01-15',
+            '2025-01-20',
+            '2025-02-01'
+        ],
+        'Amount': [
+            '$1,000',
+            '$2,500',
+            '$3,750'
+        ],
+        'Subject': [
+            'Invoice Payment',
+            'Monthly Report',
+            'Contract Renewal'
+        ]
+    }
+    
+    # Create DataFrame
+    df = pd.DataFrame(sample_data)
+    
+    # Write to BytesIO buffer
+    buffer = BytesIO()
+    with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+        df.to_excel(writer, index=False, sheet_name='Email List')
+        
+        # Get workbook and worksheet for formatting
+        workbook = writer.book
+        worksheet = writer.sheets['Email List']
+        
+        # Define formats
+        header_format = workbook.add_format({
+            'bold': True,
+            'bg_color': '#667eea',
+            'font_color': 'white',
+            'border': 1,
+            'align': 'center',
+            'valign': 'vcenter'
+        })
+        
+        # Set column widths and header format
+        column_widths = {
+            'A': 30,  # Email
+            'B': 20,  # CompanyName
+            'C': 20,  # Name
+            'D': 15,  # Date
+            'E': 15,  # Amount
+            'F': 25   # Subject
+        }
+        
+        for col, width in column_widths.items():
+            worksheet.set_column(f'{col}:{col}', width)
+        
+        # Apply header format
+        for col_num, value in enumerate(df.columns):
+            worksheet.write(0, col_num, value, header_format)
+    
+    buffer.seek(0)
+    
+    # Create response
+    response = HttpResponse(
+        buffer.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="email_template.xlsx"'
+    
+    return response
+
 def signup(request: HttpRequest) -> HttpResponse:
     """User signup view."""
     if request.method == "POST":
