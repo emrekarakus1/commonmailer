@@ -803,10 +803,10 @@ def download_excel_template(request: HttpRequest) -> HttpResponse:
             '$2,500',
             '$3,750'
         ],
-        'Subject': [
-            'Invoice Payment',
-            'Monthly Report',
-            'Contract Renewal'
+        'CC': [
+            'manager@companyA.com',
+            '',
+            'ceo@companyC.com'
         ]
     }
     
@@ -839,7 +839,7 @@ def download_excel_template(request: HttpRequest) -> HttpResponse:
             'C': 20,  # Name
             'D': 15,  # Date
             'E': 15,  # Amount
-            'F': 25   # Subject
+            'F': 30   # CC
         }
         
         for col, width in column_widths.items():
