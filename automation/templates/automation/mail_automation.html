@@ -496,75 +496,6 @@
           </form>
         </div>
         <div id="signinInfo" style="margin-top: 1rem;"></div>
-        <script>
-async function postStart(url) {
-  const formData = new FormData();
-  const resp = await fetch(url, { method: 'POST', headers: { 'X-CSRFToken': getCookie('csrftoken') }, body: formData });
-  return resp.json();
-}
-async function getJson(url) {
-  const resp = await fetch(url);
-  return resp.json();
-}
-function getCookie(name) { const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)'); return v ? v.pop() : ''; }
-
-async function startSignIn() {
-  try {
-    const start = await postStart('{% url "automation:mail_signin_start" %}');
-    if (start.user_code && start.verification_uri) {
-      const info = document.getElementById('signinInfo');
-      info.innerHTML = `
-        <div class="card" style="background: #f0f9ff; border: 2px solid #0ea5e9;">
-          <h3 style="color: #0c4a6e; margin-bottom: 1rem;">
-            <i class="fas fa-external-link-alt"></i> Microsoft Sign-in Required
-          </h3>
-          <p style="margin-bottom: 1rem; color: #0c4a6e;">
-            Visit the link below and enter the code to authorize email sending:
-          </p>
-          <div style="background: white; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-            <p style="margin-bottom: 0.5rem;"><strong>Code:</strong></p>
-            <div style="font-family: monospace; font-size: 1.2rem; font-weight: bold; color: #0c4a6e; background: #e0f2fe; padding: 0.5rem; border-radius: 4px; text-align: center;">${start.user_code}</div>
-          </div>
-          <a href="${start.verification_uri}" target="_blank" class="btn" style="display: inline-flex; align-items: center; gap: 0.5rem;">
-            <i class="fas fa-external-link-alt"></i> Open Microsoft Sign-in
-          </a>
-        </div>
-      `;
-      let timer = setInterval(async () => {
-        try {
-          const res = await getJson('{% url "automation:mail_signin_poll" %}');
-          if (res.status === 'ok') { 
-            clearInterval(timer); 
-            info.innerHTML = `
-              <div class="card" style="background: #f0fdf4; border: 2px solid #16a34a;">
-                <h3 style="color: #166534; margin-bottom: 1rem;">
-                  <i class="fas fa-check-circle"></i> Successfully Signed In!
-                </h3>
-                <p style="color: #166534;">You can now send emails. Refresh the page to continue.</p>
-              </div>
-            `; 
-          }
-          else if (res.status === 'error') { 
-            clearInterval(timer); 
-            info.innerHTML = `
-              <div class="error">
-                <i class="fas fa-exclamation-triangle"></i> 
-                Sign-in failed: ${res.detail || 'Unknown error'}
-              </div>
-            `; 
-          }
-        } catch (e) { /* ignore */ }
-      }, 2000);
-    } else {
-      document.getElementById('signinInfo').innerHTML = "<div class='error'><i class='fas fa-exclamation-triangle'></i> Could not start device code flow.</div>";
-    }
-  } catch (e) {
-    alert("Failed to start sign in: " + e.message);
-  }
-}
-
-document.getElementById('signinBtn')?.addEventListener('click', startSignIn);
-        </script>
       {% elif step == 'done' %}
         <div class="card">
           <h2 style="margin-bottom: 1.5rem; color: #1f2937; font-size: 1.5rem;">
@@ -608,6 +539,109 @@ document.getElementById('signinBtn')?.addEventListener('click', startSignIn);
         </div>
       {% endif %}
     </div>
+    
+    <script>
+    // Global authentication functions - available on all pages
+    async function postStart(url) {
+      const formData = new FormData();
+      const resp = await fetch(url, { method: 'POST', headers: { 'X-CSRFToken': getCookie('csrftoken') }, body: formData });
+      return resp.json();
+    }
+    
+    async function getJson(url) {
+      const resp = await fetch(url);
+      return resp.json();
+    }
+    
+    function getCookie(name) { 
+      const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)'); 
+      return v ? v.pop() : ''; 
+    }
+    
+    async function startSignIn() {
+      try {
+        const start = await postStart('{% url "automation:mail_signin_start" %}');
+        if (start.user_code && start.verification_uri) {
+          // Create or find info display area
+          let info = document.getElementById('signinInfo');
+          if (!info) {
+            info = document.createElement('div');
+            info.id = 'signinInfo';
+            info.style.marginTop = '1rem';
+            document.querySelector('.container').appendChild(info);
+          }
+          
+          info.innerHTML = `
+            <div class="card" style="background: #f0f9ff; border: 2px solid #0ea5e9;">
+              <h3 style="color: #0c4a6e; margin-bottom: 1rem;">
+                <i class="fas fa-external-link-alt"></i> Microsoft Sign-in Required
+              </h3>
+              <p style="margin-bottom: 1rem; color: #0c4a6e;">
+                Visit the link below and enter the code to authorize email sending:
+              </p>
+              <div style="background: white; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                <p style="margin-bottom: 0.5rem;"><strong>Code:</strong></p>
+                <div style="font-family: monospace; font-size: 1.5rem; font-weight: bold; color: #0c4a6e; background: #e0f2fe; padding: 1rem; border-radius: 8px; text-align: center;">${start.user_code}</div>
+              </div>
+              <a href="${start.verification_uri}" target="_blank" class="btn" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-external-link-alt"></i> Open Microsoft Sign-in
+              </a>
+              <p style="margin-top: 1rem; color: #6b7280; font-size: 0.9rem;">
+                <i class="fas fa-sync fa-spin"></i> Waiting for you to complete sign-in...
+              </p>
+            </div>
+          `;
+          
+          // Poll for completion
+          let timer = setInterval(async () => {
+            try {
+              const res = await getJson('{% url "automation:mail_signin_poll" %}');
+              if (res.status === 'ok') { 
+                clearInterval(timer); 
+                info.innerHTML = `
+                  <div class="card" style="background: #f0fdf4; border: 2px solid #16a34a;">
+                    <h3 style="color: #166534; margin-bottom: 1rem;">
+                      <i class="fas fa-check-circle"></i> Successfully Signed In!
+                    </h3>
+                    <p style="color: #166534; margin-bottom: 1rem;">You can now send emails.</p>
+                    <button class="btn" onclick="location.reload()">
+                      <i class="fas fa-sync"></i> Refresh Page
+                    </button>
+                  </div>
+                `; 
+              }
+              else if (res.status === 'error') { 
+                clearInterval(timer); 
+                info.innerHTML = `
+                  <div class="card" style="background: #fef2f2; border: 2px solid #ef4444;">
+                    <h3 style="color: #dc2626; margin-bottom: 1rem;">
+                      <i class="fas fa-exclamation-triangle"></i> Sign-in Failed
+                    </h3>
+                    <p style="color: #dc2626;">${res.detail || 'Unknown error'}</p>
+                    <button class="btn secondary" onclick="startSignIn()" style="margin-top: 1rem;">
+                      <i class="fas fa-redo"></i> Try Again
+                    </button>
+                  </div>
+                `; 
+              }
+            } catch (e) { /* ignore polling errors */ }
+          }, 2000);
+        } else {
+          alert("Could not start device code flow. " + (start.error || 'Unknown error'));
+        }
+      } catch (e) {
+        alert("Failed to start sign in: " + e.message);
+      }
+    }
+    
+    // Attach to existing signinBtn if present
+    document.addEventListener('DOMContentLoaded', function() {
+      const signinBtn = document.getElementById('signinBtn');
+      if (signinBtn) {
+        signinBtn.addEventListener('click', startSignIn);
+      }
+    });
+    </script>
   </body>
   </html>
 
