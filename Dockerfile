@@ -15,8 +15,7 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 
 COPY . /app
 
-# Run migrations and collect static files
-RUN python manage.py migrate --noinput || true
+# Collect static files (no database needed)
 RUN python manage.py collectstatic --noinput || true
 
 # Create necessary directories
@@ -24,6 +23,7 @@ RUN mkdir -p /app/tmp_uploads /app/staticfiles
 
 EXPOSE $PORT
 
+# Run migrations at startup (when DATABASE_URL is available) then start gunicorn
 CMD python manage.py migrate --noinput && \
-    gunicorn portal.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    gunicorn portal.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --log-level info
 

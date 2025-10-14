@@ -74,12 +74,27 @@ ASGI_APPLICATION = "portal.asgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/stable/ref/settings/#databases
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+import dj_database_url
+
+# Use PostgreSQL from DATABASE_URL if available, fallback to SQLite for local dev
+DATABASE_URL = os.getenv("DATABASE_URL")
+if DATABASE_URL:
+    # Production: Use PostgreSQL from Render
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+else:
+    # Local development: Use SQLite
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 
 # Password validation
