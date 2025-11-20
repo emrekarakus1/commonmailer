@@ -322,7 +322,7 @@ def mail_automation(request: HttpRequest) -> HttpResponse:
         return _mail_automation_impl(request)
     except Exception as e:
         logger.error(f"Error in mail_automation view: {e}", exc_info=True)
-        messages.error(request, f"An error occurred while processing your request: {str(e)}")
+        messages.error(request, f"İsteğiniz işlenirken bir hata oluştu: {str(e)}")
         return redirect('/mail/')
 
 def _mail_automation_impl(request: HttpRequest) -> HttpResponse:
@@ -446,14 +446,14 @@ def _mail_automation_impl(request: HttpRequest) -> HttpResponse:
                         _cleanup_session_files(request)
                         
                     except NeedsLoginError:
-                        messages.error(request, "Please sign in with Microsoft Graph to send emails.")
+                        messages.error(request, "Email göndermek için Microsoft Graph'a giriş yapmalısınız.")
                         context["signin_required"] = True
                         context["has_auth"] = False
                         context["step"] = "form"
                         context["form"] = form
                         return render(request, "automation/mail_automation.html", context)
                     except MailSendError as e:
-                        messages.error(request, f"Mail sending failed: {e}")
+                        messages.error(request, f"Email gönderimi başarısız: {e}")
                         return redirect("automation:mail_automation")
 
                 context["form"] = form
@@ -461,7 +461,7 @@ def _mail_automation_impl(request: HttpRequest) -> HttpResponse:
                 
             except Exception as e:
                 logger.error(f"Error in mail automation: {e}", exc_info=True)
-                messages.error(request, f"An error occurred while processing your request: {str(e)}")
+                messages.error(request, f"İsteğiniz işlenirken bir hata oluştu: {str(e)}")
                 return redirect('/mail/')
         else:
             context["form"] = form
@@ -478,7 +478,7 @@ def template_manager(request: HttpRequest) -> HttpResponse:
         return _template_manager_impl(request)
     except Exception as e:
         logger.error(f"Error in template_manager view: {e}", exc_info=True)
-        messages.error(request, f"An error occurred while managing templates: {str(e)}")
+        messages.error(request, f"Şablonlar yönetilirken bir hata oluştu: {str(e)}")
         # Return error page instead of redirecting to avoid infinite loop
         return render(request, "automation/template_manager.html", {
             "templates": {},
@@ -490,7 +490,7 @@ def _template_manager_impl(request: HttpRequest) -> HttpResponse:
     """Main template manager logic."""
     # Create user-specific template service
     if not request.user.is_authenticated:
-        messages.error(request, "You must be logged in to access templates.")
+        messages.error(request, "Şablonlara erişmek için giriş yapmalısınız.")
         return redirect("automation:login")
     
     try:
@@ -528,7 +528,7 @@ def _template_manager_impl(request: HttpRequest) -> HttpResponse:
                 logger.info(f"Successfully created template service for user {user_id} on retry")
             except Exception as e:
                 logger.error(f"Failed to create template service on retry: {e}")
-                messages.error(request, f"Template service is not available: {str(e)}")
+                messages.error(request, f"Şablon servisi kullanılamıyor: {str(e)}")
                 return render(request, "automation/template_manager.html", context)
             
         if "delete_template" in request.POST:
