@@ -345,20 +345,20 @@
   <body>
     <div class="container">
       <div class="header">
-        <h1><i class="fas fa-paper-plane"></i> Mail Automation</h1>
-        <p>Upload an Excel file, choose a template, and send personalized emails with PDF attachments</p>
+        <h1><i class="fas fa-paper-plane"></i> Email Otomasyonu</h1>
+        <p>Excel dosyası yükleyin, şablon seçin ve PDF ekleriyle kişiselleştirilmiş emailler gönderin</p>
       </div>
 
       <div class="nav-bar">
         <a href="{% url 'dashboard' %}" class="back-link">
-          <i class="fas fa-arrow-left"></i> Back to Dashboard
+          <i class="fas fa-arrow-left"></i> Panele Dön
         </a>
         <div style="font-weight: 500;">
-          <i class="fas fa-paper-plane"></i> Mail Automation
+          <i class="fas fa-paper-plane"></i> Email Otomasyonu
         </div>
         {% if signin_required %}
           <button type="button" class="btn" onclick="startSignIn()" style="margin-left: auto; padding: 0.5rem 1rem; font-size: 0.9rem;">
-            <i class="fas fa-sign-in-alt"></i> Sign in to Microsoft
+            <i class="fas fa-sign-in-alt"></i> Microsoft'a Giriş Yap
           </button>
         {% endif %}
       </div>
@@ -391,8 +391,8 @@
         <div class="card">
           <div style="text-align: center;">
             <i class="fas fa-sign-in-alt" style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;"></i>
-            <h3 style="margin-bottom: 1rem;">Microsoft Graph Authentication Required</h3>
-            <p style="margin-bottom: 2rem; color: #6b7280;">You need to sign in to Microsoft Graph to send emails. Use the "Sign in to Microsoft" button in the navigation bar above.</p>
+            <h3 style="margin-bottom: 1rem;">Microsoft Graph Kimlik Doğrulaması Gerekli</h3>
+            <p style="margin-bottom: 2rem; color: #6b7280;">Email göndermek için Microsoft Graph'a giriş yapmanız gerekiyor. Yukarıdaki navigasyon çubuğundaki "Microsoft'a Giriş Yap" butonunu kullanın.</p>
           </div>
         </div>
         <div id="signinInfo" style="margin-top: 1rem;"></div>
@@ -401,44 +401,44 @@
       {% if step == 'form' %}
         <div class="card">
           <h2 style="margin-bottom: 2rem; color: #1f2937; font-size: 1.5rem;">
-            <i class="fas fa-upload"></i> Upload Files & Configure
+            <i class="fas fa-upload"></i> Dosya Yükle ve Yapılandır
           </h2>
           <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             
             <div class="form-group">
               <label for="{{ form.excel_file.id_for_label }}">
-                <i class="fas fa-file-excel"></i> Excel File
+                <i class="fas fa-file-excel"></i> Excel Dosyası
               </label>
               {{ form.excel_file }}
               <div class="hint">
-                Upload an .xlsx file with email addresses and company names
+                Email adresleri ve şirket isimleri içeren bir .xlsx dosyası yükleyin
                 <br>
                 <a href="{% url 'automation:download_excel_template' %}" style="color: #667eea; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem; margin-top: 0.5rem;">
-                  <i class="fas fa-download"></i> Download Excel Template
+                  <i class="fas fa-download"></i> Excel Şablonunu İndir
                 </a>
               </div>
             </div>
             
             <div class="form-group">
               <label for="{{ form.template.id_for_label }}">
-                <i class="fas fa-envelope"></i> Email Template
+                <i class="fas fa-envelope"></i> Email Şablonu
               </label>
               {{ form.template }}
-              <div class="hint">Choose a template for your email content</div>
+              <div class="hint">Email içeriğiniz için bir şablon seçin</div>
             </div>
             
          <div class="form-group">
            <label for="{{ form.attachment.id_for_label }}">
-             <i class="fas fa-paperclip"></i> Attachment
+             <i class="fas fa-paperclip"></i> Ek Dosya
            </label>
            {{ form.attachment }}
-           <div class="hint">Upload any file (PDF, DOC, ZIP, etc.) to attach to all emails</div>
+           <div class="hint">Tüm emaillere eklenecek herhangi bir dosya yükleyin (PDF, DOC, ZIP, vb.)</div>
          </div>
             
             <div class="btn-group">
               <button class="btn" type="submit">
-                <i class="fas fa-eye"></i> Preview
+                <i class="fas fa-eye"></i> Önizle
               </button>
             </div>
           </form>
@@ -446,51 +446,79 @@
       {% elif step == 'preview' %}
         <div class="card">
           <h2 style="margin-bottom: 1.5rem; color: #1f2937; font-size: 1.5rem;">
-            <i class="fas fa-eye"></i> Preview Information
+            <i class="fas fa-eye"></i> Önizleme Bilgileri
           </h2>
           
           <div class="stats" style="margin-bottom: 2rem;">
             <div class="stat-card">
               <div class="number">{{ total_rows }}</div>
-              <div class="label">Total Recipients</div>
+              <div class="label">Toplam Alıcı</div>
             </div>
             <div class="stat-card">
               <div class="number">{{ total_rows }}</div>
-              <div class="label">Emails to Send</div>
+              <div class="label">Gönderilecek Email</div>
             </div>
             <div class="stat-card">
-              <div class="number">{{ template_name|default:"N/A" }}</div>
-              <div class="label">Template</div>
+              <div class="number">{{ template_name|default:"Yok" }}</div>
+              <div class="label">Şablon</div>
             </div>
           </div>
 
           <div style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 1.5rem;">
             <h3 style="margin-bottom: 1rem; color: #1f2937; font-size: 1.1rem;">
-              <i class="fas fa-info-circle" style="color: #667eea;"></i> What will happen:
+              <i class="fas fa-info-circle" style="color: #667eea;"></i> Ne Olacak:
             </h3>
             <ul style="list-style: none; padding: 0; margin: 0;">
               <li style="padding: 0.75rem 0; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 0.75rem;">
                 <i class="fas fa-check-circle" style="color: #16a34a;"></i>
-                <span><strong>{{ total_rows }} emails</strong> will be sent to recipients from your Excel file</span>
+                <span><strong>{{ total_rows }} email</strong> Excel dosyanızdaki alıcılara gönderilecek</span>
               </li>
               <li style="padding: 0.75rem 0; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 0.75rem;">
                 <i class="fas fa-envelope" style="color: #667eea;"></i>
-                <span>Each email will use the <strong>{{ template_name|default:"selected" }} template</strong></span>
+                <span>Her email <strong>{{ template_name|default:"seçilen" }} şablonu</strong> kullanacak</span>
               </li>
               <li style="padding: 0.75rem 0; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 0.75rem;">
                 <i class="fas fa-paperclip" style="color: #667eea;"></i>
-                <span>Attachments will be matched to companies automatically</span>
+                <span>Ekler şirketlere otomatik olarak eşleştirilecek</span>
               </li>
               <li style="padding: 0.75rem 0; display: flex; align-items: center; gap: 0.75rem;">
                 <i class="fas fa-file-excel" style="color: #16a34a;"></i>
-                <span>A detailed Excel report will be generated after sending</span>
+                <span>Gönderim sonrası detaylı Excel raporu oluşturulacak</span>
               </li>
             </ul>
           </div>
 
+          {% if email_preview_list %}
+          <div style="background: #ffffff; padding: 1.5rem; border-radius: 12px; border: 2px solid #e2e8f0; margin-bottom: 1.5rem;">
+            <h3 style="margin-bottom: 1rem; color: #1f2937; font-size: 1.1rem;">
+              <i class="fas fa-list-alt" style="color: #667eea;"></i> Email Önizleme Detayları (İlk 5 Kayıt):
+            </h3>
+            <div style="display: grid; gap: 1rem;">
+              {% for item in email_preview_list %}
+              <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; border-left: 4px solid #667eea;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                  <i class="fas fa-envelope" style="color: #667eea;"></i>
+                  <strong style="color: #1f2937;">{{ item.email }}</strong>
+                </div>
+                <div style="color: #6b7280; font-size: 0.9rem; margin-left: 1.5rem;">
+                  <div style="margin-bottom: 0.25rem;">
+                    <i class="fas fa-file-alt" style="color: #667eea; width: 16px;"></i> 
+                    <strong>Şablon:</strong> {{ item.template }}
+                  </div>
+                  <div>
+                    <i class="fas fa-paperclip" style="color: #667eea; width: 16px;"></i> 
+                    <strong>Ek:</strong> {{ item.attachments }}
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
           <div class="card" style="background: #f8fafc;">
             <h3 style="margin-bottom: 1rem; color: #1f2937; font-size: 1.1rem;">
-              <i class="fas fa-table"></i> Data Preview (First 5 Rows)
+              <i class="fas fa-table"></i> Veri Önizlemesi (İlk 5 Satır)
             </h3>
             <div class="preview-table">{{ preview|safe }}</div>
           </div>
@@ -498,10 +526,10 @@
 
         <div class="card">
           <h2 style="margin-bottom: 1.5rem; color: #1f2937; font-size: 1.5rem;">
-            <i class="fas fa-rocket"></i> Ready to Send
+            <i class="fas fa-rocket"></i> Göndermeye Hazır
           </h2>
           <p style="margin-bottom: 1.5rem; color: #6b7280;">
-            Review the information above. Click "Validate" to start sending emails.
+            Yukarıdaki bilgileri gözden geçirin. Email göndermeye başlamak için "Doğrula ve Gönder" butonuna tıklayın.
           </p>
           <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
@@ -513,13 +541,13 @@
             <input type="hidden" name="confirm_send" value="1" />
             <div class="btn-group">
               <button class="btn" type="submit">
-                <i class="fas fa-check-circle"></i> Validate & Send Emails
+                <i class="fas fa-check-circle"></i> Doğrula ve Email Gönder
               </button>
               <a class="btn secondary" href="{% url 'dashboard' %}">
-                <i class="fas fa-home"></i> Go to Dashboard
+                <i class="fas fa-home"></i> Panele Dön
               </a>
               <a class="btn secondary" href="?reset=1">
-                <i class="fas fa-undo"></i> Start Over
+                <i class="fas fa-undo"></i> Baştan Başla
               </a>
             </div>
           </form>
@@ -528,7 +556,7 @@
       {% elif step == 'done' %}
         <div class="card">
           <h2 style="margin-bottom: 1.5rem; color: #1f2937; font-size: 1.5rem;">
-            <i class="fas fa-clipboard-list"></i> Processing Results
+            <i class="fas fa-clipboard-list"></i> İşlem Sonuçları
           </h2>
           {% if logs %}
             <div class="logs">
@@ -538,33 +566,51 @@
             </div>
           {% else %}
             <div class="info">
-              <i class="fas fa-info-circle"></i> No logs available.
+              <i class="fas fa-info-circle"></i> Log bulunamadı.
             </div>
           {% endif %}
         </div>
         
         <div class="card">
           <div style="text-align: center;">
-            <i class="fas fa-check-circle" style="font-size: 3rem; color: #16a34a; margin-bottom: 1rem;"></i>
-            <h3 style="margin-bottom: 1rem; color: #1f2937;">Processing Complete!</h3>
+            <div id="successAnimation" style="margin-bottom: 1rem;">
+              <div style="width: 100px; height: 100px; margin: 0 auto; position: relative;">
+                <svg viewBox="0 0 100 100" style="width: 100%; height: 100%;">
+                  <circle cx="50" cy="50" r="45" fill="none" stroke="#16a34a" stroke-width="4" id="successCircle" style="stroke-dasharray: 283; stroke-dashoffset: 283; animation: drawCircle 0.6s ease-out forwards;"></circle>
+                  <path d="M 30 50 L 45 65 L 70 35" fill="none" stroke="#16a34a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" id="successCheck" style="stroke-dasharray: 50; stroke-dashoffset: 50; animation: drawCheck 0.4s ease-out 0.6s forwards;"></path>
+                </svg>
+              </div>
+            </div>
+            <style>
+              @keyframes drawCircle {
+                to { stroke-dashoffset: 0; }
+              }
+              @keyframes drawCheck {
+                to { stroke-dashoffset: 0; }
+              }
+              @keyframes bounce {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.1); }
+              }
+              #successAnimation {
+                animation: bounce 0.6s ease-in-out 1s;
+              }
+            </style>
+            <h3 style="margin-bottom: 1rem; color: #1f2937;">İşlem Tamamlandı! 🎉</h3>
             <p style="margin-bottom: 2rem; color: #6b7280;">
-              {% if dry_run %}
-                Dry run completed. Check the logs above to see what would have been sent.
-              {% else %}
-                Email sending completed. Check the logs above for details.
-              {% endif %}
+              Email gönderimi başarıyla tamamlandı. Yukarıdaki logları kontrol edebilirsiniz.
             </p>
             <div class="btn-group">
               {% if request.session.report_path %}
                 <a href="{% url 'automation:download_report' %}" class="btn">
-                  <i class="fas fa-file-excel"></i> Download Excel Report
+                  <i class="fas fa-file-excel"></i> Excel Raporunu İndir
                 </a>
               {% endif %}
               <a class="btn" href="?reset=1">
-                <i class="fas fa-plus"></i> Send More Emails
+                <i class="fas fa-plus"></i> Daha Fazla Email Gönder
               </a>
               <a class="btn secondary" href="{% url 'dashboard' %}">
-                <i class="fas fa-home"></i> Back to Dashboard
+                <i class="fas fa-home"></i> Panele Dön
               </a>
             </div>
           </div>
@@ -606,20 +652,20 @@
           info.innerHTML = `
             <div class="card" style="background: #f0f9ff; border: 2px solid #0ea5e9;">
               <h3 style="color: #0c4a6e; margin-bottom: 1rem;">
-                <i class="fas fa-external-link-alt"></i> Microsoft Sign-in Required
+                <i class="fas fa-external-link-alt"></i> Microsoft Girişi Gerekli
               </h3>
               <p style="margin-bottom: 1rem; color: #0c4a6e;">
-                Visit the link below and enter the code to authorize email sending:
+                Aşağıdaki bağlantıyı ziyaret edin ve email göndermeyi yetkilendirmek için kodu girin:
               </p>
               <div style="background: white; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                <p style="margin-bottom: 0.5rem;"><strong>Code:</strong></p>
+                <p style="margin-bottom: 0.5rem;"><strong>Kod:</strong></p>
                 <div style="font-family: monospace; font-size: 1.5rem; font-weight: bold; color: #0c4a6e; background: #e0f2fe; padding: 1rem; border-radius: 8px; text-align: center;">${start.user_code}</div>
               </div>
               <a href="${start.verification_uri}" target="_blank" class="btn" style="display: inline-flex; align-items: center; gap: 0.5rem;">
-                <i class="fas fa-external-link-alt"></i> Open Microsoft Sign-in
+                <i class="fas fa-external-link-alt"></i> Microsoft Giriş Sayfasını Aç
               </a>
               <p style="margin-top: 1rem; color: #6b7280; font-size: 0.9rem;">
-                <i class="fas fa-sync fa-spin"></i> Waiting for you to complete sign-in...
+                <i class="fas fa-sync fa-spin"></i> Giriş işleminizi tamamlamanız bekleniyor...
               </p>
             </div>
           `;
@@ -633,15 +679,15 @@
                 info.innerHTML = `
                   <div class="card" style="background: #f0fdf4; border: 2px solid #16a34a;">
                     <h3 style="color: #166534; margin-bottom: 1rem;">
-                      <i class="fas fa-check-circle"></i> Successfully Signed In!
+                      <i class="fas fa-check-circle"></i> Başarıyla Giriş Yapıldı!
                     </h3>
-                    <p style="color: #166534; margin-bottom: 1rem;">You can now send emails.</p>
+                    <p style="color: #166534; margin-bottom: 1rem;">Artık email gönderebilirsiniz.</p>
                     <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                       <button class="btn" onclick="location.reload()">
-                        <i class="fas fa-sync"></i> Refresh Page
+                        <i class="fas fa-sync"></i> Sayfayı Yenile
                       </button>
                       <a href="{% url 'dashboard' %}" class="btn secondary">
-                        <i class="fas fa-home"></i> Go to Dashboard
+                        <i class="fas fa-home"></i> Panele Git
                       </a>
                     </div>
                   </div>
@@ -652,11 +698,11 @@
                 info.innerHTML = `
                   <div class="card" style="background: #fef2f2; border: 2px solid #ef4444;">
                     <h3 style="color: #dc2626; margin-bottom: 1rem;">
-                      <i class="fas fa-exclamation-triangle"></i> Sign-in Failed
+                      <i class="fas fa-exclamation-triangle"></i> Giriş Başarısız
                     </h3>
-                    <p style="color: #dc2626;">${res.detail || 'Unknown error'}</p>
+                    <p style="color: #dc2626;">${res.detail || 'Bilinmeyen hata'}</p>
                     <button class="btn secondary" onclick="startSignIn()" style="margin-top: 1rem;">
-                      <i class="fas fa-redo"></i> Try Again
+                      <i class="fas fa-redo"></i> Tekrar Dene
                     </button>
                   </div>
                 `; 

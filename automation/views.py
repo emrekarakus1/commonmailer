@@ -398,10 +398,25 @@ def _mail_automation_impl(request: HttpRequest) -> HttpResponse:
 
                 # If confirm_send is not set, show preview first
                 if not confirm_send:
+                    # Prepare email preview details (first 5 rows)
+                    email_preview_list = []
+                    for idx, (_, row) in enumerate(df.head(5).iterrows()):
+                        to_email = str(row[email_column])
+                        company_name = row.get(company_column, "") if company_column in df.columns else ""
+                        matching_attachments = _get_matching_attachments(company_name, uploaded_files, df)
+                        email_preview_list.append({
+                            "email": to_email,
+                            "company": company_name if company_name else "N/A",
+                            "template": template_name,
+                            "attachments": matching_attachments
+                        })
+                    
                     context.update({
                         "preview": preview,
                         "total_rows": len(df),
                         "template_name": template_name,
+                        "email_preview_list": email_preview_list,
+                        "has_attachments": len(uploaded_files) > 0,
                         "step": "preview"
                     })
                     context["form"] = form
