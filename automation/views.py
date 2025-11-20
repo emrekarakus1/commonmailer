@@ -422,7 +422,8 @@ def _mail_automation_impl(request: HttpRequest) -> HttpResponse:
                     context["form"] = form
                     return render(request, "automation/mail_automation.html", context)
 
-                # If confirm_send is set, proceed with actual sending (dry_run removed)
+                # If confirm_send is set, proceed with actual sending
+                if confirm_send:
                     # Actual sending
                     try:
                         logs, results = _send_emails(
@@ -435,15 +436,18 @@ def _mail_automation_impl(request: HttpRequest) -> HttpResponse:
                                 report_path = reporting_service.save_report_to_file(results, "mail_report.xlsx")
                                 request.session["report_path"] = report_path
                                 request.session["mail_results"] = results
-                                logs.append(f"\nReport generated: {report_path}")
+                                logs.append(f"\nRapor oluşturuldu: {report_path}")
                             except ReportGenerationError as e:
-                                logs.append(f"ERROR generating report: {e}")
+                                logs.append(f"HATA: Rapor oluşturulamadı: {e}")
 
                         context["logs"] = logs
                         context["step"] = "done"
                         
                         # Cleanup
                         _cleanup_session_files(request)
+                        
+                        context["form"] = form
+                        return render(request, "automation/mail_automation.html", context)
                         
                     except NeedsLoginError:
                         messages.error(request, "Email göndermek için Microsoft Graph'a giriş yapmalısınız.")
@@ -455,9 +459,6 @@ def _mail_automation_impl(request: HttpRequest) -> HttpResponse:
                     except MailSendError as e:
                         messages.error(request, f"Email gönderimi başarısız: {e}")
                         return redirect("automation:mail_automation")
-
-                context["form"] = form
-                return render(request, "automation/mail_automation.html", context)
                 
             except Exception as e:
                 logger.error(f"Error in mail automation: {e}", exc_info=True)
