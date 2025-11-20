@@ -71,6 +71,26 @@ class MailAutomationForm(forms.Form):
         self.fields["template"].choices = [(k, k) for k in templates.keys()]
 
 
+class LoginForm(forms.Form):
+    """Simplified login form with email and password."""
+    email = forms.EmailField(
+        required=True,
+        label="Email Address",
+        widget=forms.EmailInput(attrs={
+            'placeholder': 'your.email@example.com',
+            'autocomplete': 'email'
+        })
+    )
+    password = forms.CharField(
+        required=True,
+        label="Password",
+        widget=forms.PasswordInput(attrs={
+            'placeholder': 'Enter your password',
+            'autocomplete': 'current-password'
+        })
+    )
+
+
 class TemplateEditForm(forms.Form):
     name = forms.CharField(max_length=100, required=True)
     subject = forms.CharField(max_length=200, required=False)

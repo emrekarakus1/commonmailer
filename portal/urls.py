@@ -10,7 +10,7 @@ urlpatterns = [
     path("", automation_views.landing, name="home"),
     # Auth routes
     path("signup/", automation_views.signup, name="signup"),
-    path("login/", auth_views.LoginView.as_view(template_name="registration/login.html"), name="login"),
+    path("login/", automation_views.login_view, name="login"),
     path("logout/", automation_views.logout_view, name="logout"),
     # Dashboard
     path("dashboard/", automation_views.dashboard, name="dashboard"),

@@ -2,6 +2,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.contrib import messages
 import base64
 import os
@@ -918,6 +919,43 @@ def logout_view(request: HttpRequest) -> HttpResponse:
     # Redirect to login page
     from django.shortcuts import redirect
     return redirect("login")
+
+
+def login_view(request: HttpRequest) -> HttpResponse:
+    """Custom login view that accepts email instead of username."""
+    from django.contrib.auth import authenticate
+    from .forms import LoginForm
+    
+    if request.user.is_authenticated:
+        return redirect("dashboard")
+    
+    if request.method == "POST":
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            password = form.cleaned_data['password']
+            
+            # Try to find user by email
+            try:
+                user = User.objects.get(email=email)
+                # Authenticate using username (Django's default)
+                user = authenticate(request, username=user.username, password=password)
+                
+                if user is not None:
+                    login(request, user)
+                    messages.success(request, f"Welcome back, {user.email}!")
+                    next_url = request.GET.get('next', 'dashboard')
+                    return redirect(next_url)
+                else:
+                    messages.error(request, "Invalid email or password.")
+            except User.DoesNotExist:
+                messages.error(request, "Invalid email or password.")
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = LoginForm()
+    
+    return render(request, "registration/login.html", {"form": form})
 
 
 def signup(request: HttpRequest) -> HttpResponse:
