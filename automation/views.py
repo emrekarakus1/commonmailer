@@ -944,15 +944,15 @@ def login_view(request: HttpRequest) -> HttpResponse:
                 
                 if user is not None:
                     login(request, user)
-                    messages.success(request, f"Welcome back, {user.email}!")
+                    messages.success(request, f"Tekrar hoş geldiniz, {user.email}!")
                     next_url = request.GET.get('next', 'dashboard')
                     return redirect(next_url)
                 else:
-                    messages.error(request, "Invalid email or password.")
+                    messages.error(request, "Geçersiz email veya şifre.")
             except User.DoesNotExist:
-                messages.error(request, "Invalid email or password.")
+                messages.error(request, "Geçersiz email veya şifre.")
         else:
-            messages.error(request, "Please correct the errors below.")
+            messages.error(request, "Lütfen aşağıdaki hataları düzeltin.")
     else:
         form = LoginForm()
     
@@ -967,11 +967,11 @@ def signup(request: HttpRequest) -> HttpResponse:
             try:
                 user = form.save()
                 login(request, user)
-                messages.success(request, "Account created successfully!")
+                messages.success(request, "Hesap başarıyla oluşturuldu!")
                 return redirect("dashboard")
             except Exception as e:
                 logger.error(f"Error creating user: {e}", exc_info=True)
-                messages.error(request, f"Failed to create account: {str(e)}")
+                messages.error(request, f"Hesap oluşturulamadı: {str(e)}")
     else:
         form = SignupForm()
     

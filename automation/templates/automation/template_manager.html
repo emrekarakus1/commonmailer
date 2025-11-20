@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Template Manager - Mail Automation</title>
+    <title>Şablon Yöneticisi - Email Otomasyonu</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
       * {
@@ -457,19 +457,19 @@
   <body>
     <div class="container">
       <div class="header">
-        <h1><i class="fas fa-file-alt"></i> Template Manager</h1>
-        <p>Create, edit, and manage your email templates with ease</p>
+        <h1><i class="fas fa-file-alt"></i> Şablon Yöneticisi</h1>
+        <p>Email şablonlarınızı kolayca oluşturun, düzenleyin ve yönetin</p>
       </div>
 
       <div class="nav-bar">
         <a href="{% url 'dashboard' %}" class="back-link">
-          <i class="fas fa-arrow-left"></i> Back to Dashboard
+          <i class="fas fa-arrow-left"></i> Panele Dön
         </a>
         <div style="font-weight: 500;">
-          <i class="fas fa-templates"></i> Template Management
+          <i class="fas fa-templates"></i> Şablon Yönetimi
         </div>
         <a href="{% url 'automation:download_excel_template' %}" class="btn" style="margin-left: auto; padding: 0.5rem 1rem; font-size: 0.9rem;">
-          <i class="fas fa-file-excel"></i> Download Excel Template
+          <i class="fas fa-file-excel"></i> Excel Şablonunu İndir
         </a>
       </div>
 
@@ -506,16 +506,16 @@
       <div class="grid">
         <div class="card">
           <h2>
-            <i class="fas fa-list"></i> Existing Templates
+            <i class="fas fa-list"></i> Mevcut Şablonlar
           </h2>
           <div class="templates-table">
             <table>
               <thead>
                 <tr>
-                  <th>Name</th>
-                  <th>Subject</th>
-                  <th>Body Preview</th>
-                  <th>Actions</th>
+                  <th>İsim</th>
+                  <th>Konu</th>
+                  <th>İçerik Önizleme</th>
+                  <th>İşlemler</th>
                 </tr>
               </thead>
               <tbody>
@@ -529,10 +529,10 @@
                     <td>
                       <div class="actions">
                         <a class="btn secondary" href="?edit={{ name }}">
-                          <i class="fas fa-edit"></i> Edit
+                          <i class="fas fa-edit"></i> Düzenle
                         </a>
                         <a class="btn danger" href="{% url 'automation:delete_template' name=name %}">
-                          <i class="fas fa-trash"></i> Delete
+                          <i class="fas fa-trash"></i> Sil
                         </a>
                       </div>
                     </td>
@@ -541,7 +541,7 @@
                   <tr>
                     <td colspan="4" style="text-align: center; padding: 2rem; color: #6b7280;">
                       <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 1rem; display: block;"></i>
-                      No templates created yet. Create your first template below!
+                      Henüz şablon oluşturulmadı. İlk şablonunuzu aşağıdan oluşturun!
                     </td>
                   </tr>
                 {% endfor %}
@@ -550,23 +550,23 @@
           </div>
           <div class="btn-group">
             <a class="btn secondary" href="{% url 'automation:download_templates' %}">
-              <i class="fas fa-download"></i> Download JSON
+              <i class="fas fa-download"></i> JSON İndir
             </a>
           </div>
         </div>
 
         <div class="card">
           <h2>
-            <i class="fas fa-plus-circle"></i> Create / Edit Template
+            <i class="fas fa-plus-circle"></i> Şablon Oluştur / Düzenle
           </h2>
           
           <!-- Variable Palette -->
           <div class="variable-palette">
-            <h3><i class="fas fa-puzzle-piece"></i> Available Variables</h3>
+            <h3><i class="fas fa-puzzle-piece"></i> Mevcut Değişkenler</h3>
             <div class="variable-grid">
               <div class="variable-item" draggable="true" data-variable="{name}">
                 <i class="fas fa-user"></i>
-                <span>Name</span>
+                <span>İsim</span>
               </div>
               <div class="variable-item" draggable="true" data-variable="{email}">
                 <i class="fas fa-envelope"></i>
@@ -574,20 +574,20 @@
               </div>
               <div class="variable-item" draggable="true" data-variable="{companyname}">
                 <i class="fas fa-building"></i>
-                <span>Company Name</span>
+                <span>Şirket Adı</span>
               </div>
               <div class="variable-item" draggable="true" data-variable="{date}">
                 <i class="fas fa-calendar"></i>
-                <span>Date</span>
+                <span>Tarih</span>
               </div>
               <div class="variable-item" draggable="true" data-variable="{amount}">
                 <i class="fas fa-dollar-sign"></i>
-                <span>Amount</span>
+                <span>Tutar</span>
               </div>
             </div>
             <p class="variable-help">
               <i class="fas fa-info-circle"></i> 
-              Drag variables into the subject or body fields to use them
+              Değişkenleri konu veya içerik alanlarına sürükleyerek kullanın
             </p>
           </div>
           
@@ -597,34 +597,34 @@
             
             <div class="form-group">
               <label for="id_name">
-                <i class="fas fa-tag"></i> Template Name
+                <i class="fas fa-tag"></i> Şablon İsmi
               </label>
               {{ edit_form.name }}
             </div>
             
             <div class="form-group">
               <label for="id_subject">
-                <i class="fas fa-heading"></i> Email Subject
-                <span class="drop-zone-indicator">Drop variables here</span>
+                <i class="fas fa-heading"></i> Email Konusu
+                <span class="drop-zone-indicator">Değişkenleri buraya sürükleyin</span>
               </label>
               {{ edit_form.subject }}
             </div>
             
             <div class="form-group">
               <label for="id_body">
-                <i class="fas fa-align-left"></i> Email Body
-                <span class="drop-zone-indicator">Drop variables here</span>
+                <i class="fas fa-align-left"></i> Email İçeriği
+                <span class="drop-zone-indicator">Değişkenleri buraya sürükleyin</span>
               </label>
               {{ edit_form.body }}
             </div>
             
             <div class="btn-group">
               <button type="submit" class="btn">
-                <i class="fas fa-save"></i> Save Template
+                <i class="fas fa-save"></i> Şablonu Kaydet
               </button>
               {% if request.GET.edit %}
                 <a href="{% url 'automation:template_manager' %}" class="btn secondary">
-                  <i class="fas fa-times"></i> Clear
+                  <i class="fas fa-times"></i> Temizle
                 </a>
               {% endif %}
             </div>

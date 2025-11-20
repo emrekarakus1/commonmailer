@@ -28,7 +28,7 @@ class SignupForm(forms.Form):
         """Validate email and check if it already exists."""
         email = self.cleaned_data.get('email')
         if User.objects.filter(email=email).exists():
-            raise forms.ValidationError("A user with this email already exists.")
+            raise forms.ValidationError("Bu email adresiyle zaten bir kullanıcı mevcut.")
         return email
 
     def save(self, commit=True):
