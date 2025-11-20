@@ -44,6 +44,35 @@
         font-weight: 300;
       }
       
+      .nav-bar {
+        background: rgba(255,255,255,0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 1rem 2rem;
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: white;
+      }
+      
+      .nav-bar .back-link {
+        color: white;
+        text-decoration: none;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.1);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      
+      .nav-bar .back-link:hover {
+        background: rgba(255,255,255,0.2);
+        transform: translateY(-1px);
+      }
+      
       .card {
         background: white;
         border-radius: 20px;
@@ -320,6 +349,20 @@
         <p>Upload an Excel file, choose a template, and send personalized emails with PDF attachments</p>
       </div>
 
+      <div class="nav-bar">
+        <a href="{% url 'dashboard' %}" class="back-link">
+          <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+        <div style="font-weight: 500;">
+          <i class="fas fa-paper-plane"></i> Mail Automation
+        </div>
+        {% if signin_required %}
+          <button type="button" class="btn" onclick="startSignIn()" style="margin-left: auto; padding: 0.5rem 1rem; font-size: 0.9rem;">
+            <i class="fas fa-sign-in-alt"></i> Sign in to Microsoft
+          </button>
+        {% endif %}
+      </div>
+
       {% if error %}
         <div class="error">
           <i class="fas fa-exclamation-triangle"></i> {{ error }}
@@ -349,10 +392,7 @@
           <div style="text-align: center;">
             <i class="fas fa-sign-in-alt" style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;"></i>
             <h3 style="margin-bottom: 1rem;">Microsoft Graph Authentication Required</h3>
-            <p style="margin-bottom: 2rem; color: #6b7280;">You need to sign in to Microsoft Graph to send emails.</p>
-            <button type="button" class="btn" onclick="startSignIn()">
-              <i class="fas fa-sign-in-alt"></i> Sign in with Microsoft
-            </button>
+            <p style="margin-bottom: 2rem; color: #6b7280;">You need to sign in to Microsoft Graph to send emails. Use the "Sign in to Microsoft" button in the navigation bar above.</p>
           </div>
         </div>
       {% endif %}
@@ -492,9 +532,9 @@
               <button class="btn secondary" type="submit" name="action" value="attach_smoke_test">
                 <i class="fas fa-flask"></i> Test Attachments
               </button>
-              <button id="signinBtn" class="btn secondary" type="button">
-                <i class="fas fa-sign-in-alt"></i> Sign in to Microsoft
-              </button>
+              <a class="btn secondary" href="{% url 'dashboard' %}">
+                <i class="fas fa-home"></i> Go to Dashboard
+              </a>
               <a class="btn secondary" href="?reset=1">
                 <i class="fas fa-undo"></i> Start Over
               </a>
@@ -507,14 +547,17 @@
           <h2 style="margin-bottom: 1.5rem; color: #1f2937; font-size: 1.5rem;">
             <i class="fas fa-clipboard-list"></i> Processing Results
           </h2>
-          <div class="logs">
-            {% for line in logs %}
-              {{ line }}
-              {% if not forloop.last %}
-              
-              {% endif %}
-            {% endfor %}
-          </div>
+          {% if logs %}
+            <div class="logs">
+              {% for line in logs %}
+                {{ line|linebreaksbr }}
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="info">
+              <i class="fas fa-info-circle"></i> No logs available.
+            </div>
+          {% endif %}
         </div>
         
         <div class="card">
@@ -522,7 +565,7 @@
             <i class="fas fa-check-circle" style="font-size: 3rem; color: #16a34a; margin-bottom: 1rem;"></i>
             <h3 style="margin-bottom: 1rem; color: #1f2937;">Processing Complete!</h3>
             <p style="margin-bottom: 2rem; color: #6b7280;">
-              {% if form.data.dry_run %}
+              {% if dry_run %}
                 Dry run completed. Check the logs above to see what would have been sent.
               {% else %}
                 Email sending completed. Check the logs above for details.
@@ -610,9 +653,14 @@
                       <i class="fas fa-check-circle"></i> Successfully Signed In!
                     </h3>
                     <p style="color: #166534; margin-bottom: 1rem;">You can now send emails.</p>
-                    <button class="btn" onclick="location.reload()">
-                      <i class="fas fa-sync"></i> Refresh Page
-                    </button>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                      <button class="btn" onclick="location.reload()">
+                        <i class="fas fa-sync"></i> Refresh Page
+                      </button>
+                      <a href="{% url 'dashboard' %}" class="btn secondary">
+                        <i class="fas fa-home"></i> Go to Dashboard
+                      </a>
+                    </div>
                   </div>
                 `; 
               }
@@ -640,12 +688,13 @@
       }
     }
     
-    // Attach to existing signinBtn if present
+    // Attach to signin buttons in navigation bar and other locations
     document.addEventListener('DOMContentLoaded', function() {
-      const signinBtn = document.getElementById('signinBtn');
-      if (signinBtn) {
-        signinBtn.addEventListener('click', startSignIn);
-      }
+      // Find all signin buttons
+      const signinBtns = document.querySelectorAll('button[onclick="startSignIn()"]');
+      signinBtns.forEach(btn => {
+        btn.addEventListener('click', startSignIn);
+      });
     });
     </script>
   </body>

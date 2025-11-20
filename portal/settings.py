@@ -97,22 +97,9 @@ else:
     }
 
 
-# Password validation
+# Password validation - DISABLED (no password rules)
 # https://docs.djangoproject.com/en/stable/ref/settings/#auth-password-validators
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
-]
+AUTH_PASSWORD_VALIDATORS = []
 
 
 # Internationalization
@@ -189,6 +176,21 @@ LOGGING = {
 GRAPH_TENANT_ID = os.getenv("GRAPH_TENANT_ID", "common")
 GRAPH_CLIENT_ID = os.getenv("GRAPH_CLIENT_ID", "")
 GRAPH_SCOPES = os.getenv("GRAPH_SCOPES", "Mail.Send")
-EMAIL_TEMPLATES_PATH = os.getenv("EMAIL_TEMPLATES_PATH", str(BASE_DIR / "email_templates.json"))
+
+# Persistent data storage configuration
+DATA_STORAGE_PATH = os.getenv("DATA_STORAGE_PATH", str(BASE_DIR / "persistent_data"))
+EMAIL_TEMPLATES_PATH = os.getenv("EMAIL_TEMPLATES_PATH", str(Path(DATA_STORAGE_PATH) / "email_templates.json"))
+USER_TEMPLATES_PATH = os.getenv("USER_TEMPLATES_PATH", str(Path(DATA_STORAGE_PATH) / "user_templates"))
+
+# Ensure persistent data directory exists
+try:
+    os.makedirs(DATA_STORAGE_PATH, exist_ok=True)
+    os.makedirs(USER_TEMPLATES_PATH, exist_ok=True)
+except Exception as e:
+    print(f"Warning: Could not create persistent data directory: {e}")
+    # Fallback to BASE_DIR
+    DATA_STORAGE_PATH = str(BASE_DIR)
+    EMAIL_TEMPLATES_PATH = str(BASE_DIR / "email_templates.json")
+    USER_TEMPLATES_PATH = str(BASE_DIR / "user_templates")
 
 

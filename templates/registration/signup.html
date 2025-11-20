@@ -183,25 +183,6 @@
         color: #10b981;
       }
       
-      .password-help {
-        background: #f0f9ff;
-        border: 1px solid #bae6fd;
-        border-radius: 8px;
-        padding: 0.75rem 1rem;
-        margin-top: 0.5rem;
-        font-size: 0.8rem;
-        color: #0369a1;
-      }
-      
-      .password-help ul {
-        margin: 0.5rem 0 0 1rem;
-        padding: 0;
-      }
-      
-      .password-help li {
-        margin: 0.25rem 0;
-      }
-      
       @media (max-width: 480px) {
         .signup-container {
           padding: 2rem;
@@ -243,27 +224,6 @@
       <form method="post">
         {% csrf_token %}
         <div class="form-group">
-          <label for="{{ form.username.id_for_label }}">
-            <i class="fas fa-user"></i> Username
-          </label>
-          {{ form.username }}
-        </div>
-        
-        <div class="form-group">
-          <label for="{{ form.first_name.id_for_label }}">
-            <i class="fas fa-user"></i> First Name
-          </label>
-          {{ form.first_name }}
-        </div>
-        
-        <div class="form-group">
-          <label for="{{ form.last_name.id_for_label }}">
-            <i class="fas fa-user"></i> Last Name
-          </label>
-          {{ form.last_name }}
-        </div>
-        
-        <div class="form-group">
           <label for="{{ form.email.id_for_label }}">
             <i class="fas fa-envelope"></i> Email Address
           </label>
@@ -271,26 +231,10 @@
         </div>
         
         <div class="form-group">
-          <label for="{{ form.password1.id_for_label }}">
+          <label for="{{ form.password.id_for_label }}">
             <i class="fas fa-lock"></i> Password
           </label>
-          {{ form.password1 }}
-          <div class="password-help">
-            <strong>Password requirements:</strong>
-            <ul>
-              <li>At least 8 characters long</li>
-              <li>Cannot be too similar to your username</li>
-              <li>Cannot be a commonly used password</li>
-              <li>Cannot be entirely numeric</li>
-            </ul>
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <label for="{{ form.password2.id_for_label }}">
-            <i class="fas fa-lock"></i> Confirm Password
-          </label>
-          {{ form.password2 }}
+          {{ form.password }}
         </div>
         
         <button class="btn" type="submit">

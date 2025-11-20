@@ -83,7 +83,8 @@ def send_single_mail(
     body: str,
     attachments: Optional[List[Dict[str, str]]] = None,
     cc_emails: Optional[List[str]] = None,
-    timeout: int = 15
+    timeout: int = 15,
+    user_id: Optional[int] = None
 ) -> bool:
     """
     Send a single email.
@@ -95,6 +96,7 @@ def send_single_mail(
         attachments: List of attachment objects
         cc_emails: List of CC email addresses
         timeout: Request timeout in seconds
+        user_id: User ID for authentication context
         
     Returns:
         True if successful
@@ -104,7 +106,7 @@ def send_single_mail(
         NeedsLoginError: If authentication is required
     """
     try:
-        access_token = acquire_token_silent_or_fail()
+        access_token = acquire_token_silent_or_fail(user_id)
         message_payload = build_message_payload(to_email, subject, body, attachments, cc_emails)
         
         if attachments:
@@ -121,7 +123,8 @@ def send_single_mail(
 
 def send_bulk_mails(
     mail_data: List[Dict[str, Any]],
-    timeout: int = 15
+    timeout: int = 15,
+    user_id: Optional[int] = None
 ) -> List[Dict[str, Any]]:
     """
     Send multiple emails and return results.
@@ -129,6 +132,7 @@ def send_bulk_mails(
     Args:
         mail_data: List of mail data dictionaries
         timeout: Request timeout in seconds
+        user_id: User ID for authentication context
         
     Returns:
         List of result dictionaries with status and error information
@@ -136,7 +140,7 @@ def send_bulk_mails(
     results = []
     
     try:
-        access_token = acquire_token_silent_or_fail()
+        access_token = acquire_token_silent_or_fail(user_id)
     except NeedsLoginError:
         # Return error for all mails
         for data in mail_data:

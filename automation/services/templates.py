@@ -6,6 +6,7 @@ import logging
 from pathlib import Path
 from typing import Dict, Any, Optional
 import os
+from django.conf import settings
 
 from ..exceptions import TemplateNotFoundError
 from ..utils import load_email_templates, save_email_templates
@@ -65,6 +66,9 @@ class TemplateService:
         # Update cache
         self._templates_cache = templates
         logger.info(f"Template '{name}' saved for user {self.user_id}")
+        
+        # Create automatic backup
+        self._create_automatic_backup()
     
     def delete_template(self, name: str) -> None:
         """
@@ -84,6 +88,9 @@ class TemplateService:
         self._save_user_templates(templates)
         self._templates_cache = templates
         logger.info(f"Template '{name}' deleted for user {self.user_id}")
+        
+        # Create automatic backup
+        self._create_automatic_backup()
     
     def _load_user_templates(self) -> Dict[str, Dict[str, str]]:
         """Load templates for the current user."""
@@ -91,8 +98,13 @@ class TemplateService:
             logger.warning("No user_id provided to template service")
             return {}
         
-        user_templates_file = Path(f"email_templates_user_{self.user_id}.json")
+        # Use persistent storage path
+        user_templates_file = Path(settings.USER_TEMPLATES_PATH) / f"email_templates_user_{self.user_id}.json"
         logger.debug(f"Looking for user templates file: {user_templates_file}")
+        
+        # Create directory if it doesn't exist
+        user_templates_file.parent.mkdir(parents=True, exist_ok=True)
+        
         if not user_templates_file.exists():
             logger.debug(f"User templates file does not exist: {user_templates_file}")
             return {}
@@ -123,8 +135,13 @@ class TemplateService:
             logger.warning("No user_id provided to template service, cannot save templates")
             return
         
-        user_templates_file = Path(f"email_templates_user_{self.user_id}.json")
+        # Use persistent storage path
+        user_templates_file = Path(settings.USER_TEMPLATES_PATH) / f"email_templates_user_{self.user_id}.json"
         logger.debug(f"Saving user templates to: {user_templates_file}")
+        
+        # Create directory if it doesn't exist
+        user_templates_file.parent.mkdir(parents=True, exist_ok=True)
+        
         try:
             with open(user_templates_file, "w", encoding="utf-8") as f:
                 json.dump(templates, f, indent=2, ensure_ascii=False)
@@ -164,6 +181,9 @@ class TemplateService:
             self._save_user_templates(templates)
             self._templates_cache = templates
             logger.info(f"Uploaded {len(new_templates)} templates")
+            
+            # Create automatic backup
+            self._create_automatic_backup()
         except json.JSONDecodeError as e:
             raise ValueError(f"Invalid JSON content: {e}") from e
     
@@ -180,6 +200,18 @@ class TemplateService:
     def clear_cache(self) -> None:
         """Clear the templates cache."""
         self._templates_cache = None
+    
+    def _create_automatic_backup(self) -> None:
+        """Create automatic backup after template changes."""
+        if not self.user_id:
+            return
+        
+        try:
+            from .backup import backup_service
+            backup_service.create_backup(self.user_id)
+            logger.debug(f"Created automatic backup for user {self.user_id}")
+        except Exception as e:
+            logger.warning(f"Failed to create automatic backup for user {self.user_id}: {e}")
 
 
 # Global instance - will be replaced with user-specific instances

@@ -140,9 +140,11 @@ tmp_uploads/
 
 # Email templates (user-specific only)
 email_templates_user_*.json
+email_templates.json
 
 # MSAL cache
 msal_cache.bin
+persistent_data/
 
 # IDE
 .vscode/

@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
+from django.conf import settings
 
 import msal
 import requests
@@ -18,35 +19,79 @@ _raw_scopes = os.environ.get("GRAPH_SCOPES", "Mail.Send").split()
 GRAPH_SCOPES: List[str] = [s for s in _raw_scopes if s and s not in RESERVED]
 
 
-# Persistent cache on disk under project base
+# User-specific cache management
 BASE_DIR = Path(__file__).resolve().parents[2]
-_CACHE_FILE = BASE_DIR / "msal_cache.bin"
-_token_cache = msal.SerializableTokenCache()
+_user_caches: Dict[int, msal.SerializableTokenCache] = {}
 
 
-def load_cache() -> None:
+def get_user_cache_file(user_id: int) -> Path:
+    """Get cache file path for a specific user."""
+    cache_dir = Path(settings.DATA_STORAGE_PATH) / "msal_cache"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    return cache_dir / f"user_{user_id}_cache.bin"
+
+
+def load_user_cache(user_id: int) -> msal.SerializableTokenCache:
+    """Load cache for a specific user."""
+    if user_id not in _user_caches:
+        cache = msal.SerializableTokenCache()
+        cache_file = get_user_cache_file(user_id)
+        try:
+            if cache_file.exists():
+                cache.deserialize(cache_file.read_text())
+        except Exception:
+            # Corrupt cache; ignore
+            pass
+        _user_caches[user_id] = cache
+    return _user_caches[user_id]
+
+
+def save_user_cache(user_id: int) -> None:
+    """Save cache for a specific user."""
+    if user_id in _user_caches:
+        try:
+            cache_file = get_user_cache_file(user_id)
+            cache_file.write_text(_user_caches[user_id].serialize())
+        except Exception:
+            # Best-effort persistence
+            pass
+
+
+def clear_user_cache(user_id: int) -> None:
+    """Clear cache for a specific user (e.g., on logout)."""
+    global _user_caches
     try:
-        if _CACHE_FILE.exists():
-            _token_cache.deserialize(_CACHE_FILE.read_text())
-    except Exception:
-        # Corrupt cache; ignore
+        # Remove from memory
+        if user_id in _user_caches:
+            del _user_caches[user_id]
+        
+        # Delete cache file
+        cache_file = get_user_cache_file(user_id)
+        if cache_file.exists():
+            cache_file.unlink()
+    except Exception as e:
+        # Best-effort cleanup
         pass
 
 
-def save_cache() -> None:
-    try:
-        _CACHE_FILE.write_text(_token_cache.serialize())
-    except Exception:
-        # Best-effort persistence
-        pass
-
-
-def get_app() -> msal.PublicClientApplication:
-    load_cache()
+def get_app(user_id: int = None) -> msal.PublicClientApplication:
+    """Get MSAL app for a specific user or global fallback."""
+    if user_id is not None:
+        token_cache = load_user_cache(user_id)
+    else:
+        # Fallback to global cache for backward compatibility
+        token_cache = msal.SerializableTokenCache()
+        global_cache_file = BASE_DIR / "msal_cache.bin"
+        try:
+            if global_cache_file.exists():
+                token_cache.deserialize(global_cache_file.read_text())
+        except Exception:
+            pass
+    
     return msal.PublicClientApplication(
         client_id=CLIENT_ID,
         authority=AUTHORITY,
-        token_cache=_token_cache,
+        token_cache=token_cache,
     )
 
 
@@ -54,10 +99,10 @@ class NeedsLoginError(Exception):
     pass
 
 
-def acquire_token_silent() -> Optional[str]:
+def acquire_token_silent(user_id: int = None) -> Optional[str]:
     if not CLIENT_ID:
         return None
-    app = get_app()
+    app = get_app(user_id)
     accounts = app.get_accounts()
     account = accounts[0] if accounts else None
     result: Optional[dict] = app.acquire_token_silent(GRAPH_SCOPES, account=account)
@@ -66,32 +111,33 @@ def acquire_token_silent() -> Optional[str]:
     return None
 
 
-def acquire_token_silent_or_fail() -> str:
-    token = acquire_token_silent()
+def acquire_token_silent_or_fail(user_id: int = None) -> str:
+    token = acquire_token_silent(user_id)
     if not token:
         raise NeedsLoginError("Please sign in via Device Code first")
     return token
 
 
-def device_code_start() -> Optional[dict]:
+def device_code_start(user_id: int = None) -> Optional[dict]:
     if not CLIENT_ID:
         return None
-    app = get_app()
+    app = get_app(user_id)
     flow = app.initiate_device_flow(scopes=GRAPH_SCOPES)
     return flow
 
 
-def start_device_code_flow() -> Optional[dict]:
+def start_device_code_flow(user_id: int = None) -> Optional[dict]:
     """Alias for device_code_start for backwards compatibility."""
-    return device_code_start()
+    return device_code_start(user_id)
 
 
-def device_code_poll(flow: dict, timeout: int = 2) -> dict:
+def device_code_poll(flow: dict, timeout: int = 2, user_id: int = None) -> dict:
     try:
-        app = get_app()
+        app = get_app(user_id)
         result = app.acquire_token_by_device_flow(flow, timeout=timeout)
         if result and "access_token" in result:
-            save_cache()
+            if user_id is not None:
+                save_user_cache(user_id)
             return {"status": "ok"}
         # When still pending, msal returns None or raises Timeout; treat as pending
         return {"status": "pending"}

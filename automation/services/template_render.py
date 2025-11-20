@@ -22,7 +22,14 @@ def build_context(row: Dict[str, Any]) -> Dict[str, Any]:
 
 def render_text(tpl: str, row: Dict[str, Any]) -> str:
     ctx = SafeDict(build_context(row))
-    return (tpl or "").format_map(ctx)
+    rendered = (tpl or "").format_map(ctx)
+    # Convert line breaks to HTML <br> tags for HTML email compatibility
+    # Preserve multiple spaces and line breaks
+    rendered = rendered.replace('\r\n', '\n').replace('\r', '\n')  # Normalize line endings
+    rendered = rendered.replace('\n', '<br>')  # Convert newlines to <br>
+    # Preserve multiple spaces by converting to non-breaking spaces (optional)
+    # rendered = rendered.replace('  ', '&nbsp;&nbsp;')  # Uncomment if needed
+    return rendered
 
 
 def render_subject_body(subject_tpl: str, body_tpl: str, row: Dict[str, Any]) -> Tuple[str, str]:

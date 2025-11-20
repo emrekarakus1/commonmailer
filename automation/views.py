@@ -174,13 +174,17 @@ def _send_emails(
     company_column: str,
     subject: str,
     template_body: str,
-    uploaded_files: List[Dict[str, Any]]
+    uploaded_files: List[Dict[str, Any]],
+    request: HttpRequest
 ) -> tuple[List[str], List[Dict[str, Any]]]:
     """Send emails and return logs and results."""
+    import random
+    import time
+    
     logs = []
     results = []
     
-    for _, row in df.iterrows():
+    for index, (_, row) in enumerate(df.iterrows()):
         try:
             to_addr = str(row[email_column])
             sub, body = render_subject_body(subject, template_body, row.to_dict())
@@ -254,8 +258,8 @@ def _send_emails(
             }
 
             try:
-                # Send email using service
-                send_single_mail(to_addr, sub, body, attachments, cc_emails=cc_emails, timeout=15)
+                # Send email using service with user context
+                send_single_mail(to_addr, sub, body, attachments, cc_emails=cc_emails, timeout=15, user_id=request.user.id)
                 
                 if attachments:
                     attachment_info = f" (with {len(attachments)} attachments: {'; '.join(attachment_filenames)})"
@@ -271,6 +275,12 @@ def _send_emails(
                 logs.append(f"ERROR sending to {to_addr}: {e}")
             
             results.append(result_row)
+            
+            # Add random delay between emails to avoid spam detection (except for the last email)
+            if index < len(df) - 1:  # Don't delay after the last email
+                delay = random.uniform(2.0, 8.0)  # Random delay between 2-8 seconds
+                logs.append(f"Waiting {delay:.1f}s before next email...")
+                time.sleep(delay)
             
         except Exception as e:
             company_name = row.get(company_column, "") if company_column in df.columns else ""
@@ -318,10 +328,11 @@ def _mail_automation_impl(request: HttpRequest) -> HttpResponse:
     """Main mail automation logic."""
     context = {"step": "form"}
     
-    # Check Microsoft Graph authentication status
+    # Check Microsoft Graph authentication status for current user
     try:
         from .services.graph_client import acquire_token_silent
-        token = acquire_token_silent()
+        user_id = request.user.id if request.user.is_authenticated else None
+        token = acquire_token_silent(user_id)
         context["has_auth"] = token is not None
         context["signin_required"] = token is None
     except Exception:
@@ -370,6 +381,7 @@ def _mail_automation_impl(request: HttpRequest) -> HttpResponse:
                     raise ValueError(f"Template '{template_name}' not found")
                 
                 dry_run = bool(form.cleaned_data.get("dry_run"))
+                confirm_send = request.POST.get("confirm_send") == "1"
 
                 # Add attachment preview
                 df_preview = df.head(5).copy()
@@ -384,24 +396,35 @@ def _mail_automation_impl(request: HttpRequest) -> HttpResponse:
                 except Exception:
                     preview = "<p>Preview not available</p>"
 
-                context.update({
-                    "preview": preview,
-                    "total_rows": len(df),
-                    "step": "preview"
-                })
+                # If confirm_send is not set, show preview first
+                if not confirm_send:
+                    context.update({
+                        "preview": preview,
+                        "total_rows": len(df),
+                        "step": "preview"
+                    })
+                    context["form"] = form
+                    return render(request, "automation/mail_automation.html", context)
 
+                # If confirm_send is set, proceed with dry run or actual sending
                 if dry_run:
                     # Dry run logic
                     logs, attachment_summary = _perform_dry_run(
                         df, email_column, company_column, subject, template_body, uploaded_files
                     )
-                    context["logs"] = logs
-                    context["step"] = "dry_run"
+                    # Ensure logs is a list of strings
+                    if isinstance(logs, list):
+                        context["logs"] = logs
+                    else:
+                        context["logs"] = [str(logs)] if logs else []
+                    context["step"] = "done"  # Dry run should show results like normal sending
+                    context["dry_run"] = True
+                    context["attachment_summary"] = attachment_summary
                 else:
                     # Actual sending
                     try:
                         logs, results = _send_emails(
-                            df, email_column, company_column, subject, template_body, uploaded_files
+                            df, email_column, company_column, subject, template_body, uploaded_files, request
                         )
                         
                         # Generate Excel report
@@ -616,17 +639,22 @@ def mail_signin_start(request: HttpRequest) -> HttpResponse:
     """Start Microsoft Graph sign-in process."""
     from django.http import JsonResponse
     from .services.graph_client import start_device_code_flow
+    
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "User not authenticated"}, status=401)
+    
     try:
-        device_code_info = start_device_code_flow()
+        user_id = request.user.id
+        device_code_info = start_device_code_flow(user_id)
         if not device_code_info:
             return JsonResponse({"error": "Failed to start device code flow"}, status=500)
         
-        # Store the full flow in session for polling
-        request.session['device_code_flow'] = device_code_info
-        request.session['device_code'] = device_code_info.get('device_code', '')
-        request.session['user_code'] = device_code_info.get('user_code', '')
-        request.session['verification_uri'] = device_code_info.get('verification_uri', '')
-        request.session['expires_in'] = device_code_info.get('expires_in', 900)
+        # Store the full flow in session for polling with user context
+        request.session[f'device_code_flow_{user_id}'] = device_code_info
+        request.session[f'device_code_{user_id}'] = device_code_info.get('device_code', '')
+        request.session[f'user_code_{user_id}'] = device_code_info.get('user_code', '')
+        request.session[f'verification_uri_{user_id}'] = device_code_info.get('verification_uri', '')
+        request.session[f'expires_in_{user_id}'] = device_code_info.get('expires_in', 900)
         
         return JsonResponse({
             'user_code': device_code_info.get('user_code', ''),
@@ -641,20 +669,20 @@ def mail_signin_poll(request: HttpRequest) -> HttpResponse:
     from django.http import JsonResponse
     from .services.graph_client import device_code_poll
     
-    device_code_flow = request.session.get('device_code_flow')
+    if not request.user.is_authenticated:
+        return JsonResponse({"status": "error", "detail": "User not authenticated"}, status=401)
+    
+    user_id = request.user.id
+    device_code_flow = request.session.get(f'device_code_flow_{user_id}')
     if not device_code_flow:
         return JsonResponse({"status": "error", "detail": "No device code flow found"}, status=400)
     
     try:
-        result = device_code_poll(device_code_flow, timeout=2)
+        result = device_code_poll(device_code_flow, timeout=2, user_id=user_id)
         return JsonResponse(result)
     except Exception as e:
         logger.error(f"Error polling device code: {e}", exc_info=True)
         return JsonResponse({"status": "error", "detail": str(e)}, status=500)
-
-def download_templates(request: HttpRequest) -> HttpResponse:
-    """Download templates as JSON file."""
-    return template_download(request)
 
 def delete_template(request: HttpRequest, name: str) -> HttpResponse:
     """Delete a template."""
@@ -668,14 +696,6 @@ def delete_template(request: HttpRequest, name: str) -> HttpResponse:
         messages.error(request, f"Failed to delete template: {e}")
     
     return redirect("automation:template_manager")
-
-def download_report(request: HttpRequest) -> HttpResponse:
-    """Download Excel report."""
-    return report_download(request)
-
-def healthcheck(request: HttpRequest) -> HttpResponse:
-    """Health check endpoint."""
-    return health_check(request)
 
 @login_required
 def report_download(request: HttpRequest) -> HttpResponse:
@@ -723,9 +743,10 @@ def download_report_direct(request: HttpRequest) -> HttpResponse:
 def _handle_attachment_smoke_test(request: HttpRequest) -> HttpResponse:
     """Handle attachment smoke test."""
     try:
-        # Try to get access token
+        # Try to get access token for current user
         try:
-            access_token = acquire_token_silent_or_fail()
+            user_id = request.user.id if request.user.is_authenticated else None
+            access_token = acquire_token_silent_or_fail(user_id)
         except NeedsLoginError:
             messages.error(request, "Sign-in required. Please use Device Code first.")
             return redirect("automation:mail_automation")
@@ -870,14 +891,48 @@ def download_excel_template(request: HttpRequest) -> HttpResponse:
     
     return response
 
+def logout_view(request: HttpRequest) -> HttpResponse:
+    """Custom logout view that clears Microsoft Graph cache."""
+    from django.contrib.auth import logout
+    from django.contrib.auth.decorators import login_required
+    from .services.graph_client import clear_user_cache
+    
+    user_id = request.user.id if request.user.is_authenticated else None
+    
+    # Clear Microsoft Graph cache for this user
+    if user_id:
+        try:
+            clear_user_cache(user_id)
+            logger.info(f"Cleared MSAL cache for user {user_id} on logout")
+        except Exception as e:
+            logger.warning(f"Failed to clear MSAL cache for user {user_id}: {e}")
+    
+    # Clear all session data related to Microsoft Graph
+    session_keys_to_clear = [key for key in request.session.keys() if 'device_code' in key or 'user_code' in key or 'verification_uri' in key]
+    for key in session_keys_to_clear:
+        del request.session[key]
+    
+    # Perform Django logout
+    logout(request)
+    
+    # Redirect to login page
+    from django.shortcuts import redirect
+    return redirect("login")
+
+
 def signup(request: HttpRequest) -> HttpResponse:
-    """User signup view."""
+    """User signup view - simplified with only email and password."""
     if request.method == "POST":
         form = SignupForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect("dashboard")
+            try:
+                user = form.save()
+                login(request, user)
+                messages.success(request, "Account created successfully!")
+                return redirect("dashboard")
+            except Exception as e:
+                logger.error(f"Error creating user: {e}", exc_info=True)
+                messages.error(request, f"Failed to create account: {str(e)}")
     else:
         form = SignupForm()
     
