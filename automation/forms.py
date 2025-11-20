@@ -57,7 +57,6 @@ class MailAutomationForm(forms.Form):
     excel_file = forms.FileField(required=False, help_text="Upload an .xlsx file")
     template = forms.ChoiceField(choices=[], required=True)
     attachment = forms.FileField(required=False, help_text="Upload any file to attach to all emails (PDF, DOC, ZIP, etc.)")
-    dry_run = forms.BooleanField(required=False, initial=True)
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)

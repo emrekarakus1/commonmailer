@@ -279,7 +279,7 @@ def _send_emails(
             
             # Add random delay between emails to avoid spam detection (except for the last email)
             if index < len(df) - 1:  # Don't delay after the last email
-                delay = random.uniform(2.0, 8.0)  # Random delay between 2-8 seconds
+                delay = random.uniform(0.5, 1.0)  # Random delay between 0.5-1 seconds
                 logs.append(f"Waiting {delay:.1f}s before next email...")
                 time.sleep(delay)
             
@@ -381,7 +381,6 @@ def _mail_automation_impl(request: HttpRequest) -> HttpResponse:
                 except TemplateNotFoundError:
                     raise ValueError(f"Template '{template_name}' not found")
                 
-                dry_run = bool(form.cleaned_data.get("dry_run"))
                 confirm_send = request.POST.get("confirm_send") == "1"
 
                 # Add attachment preview
@@ -402,26 +401,13 @@ def _mail_automation_impl(request: HttpRequest) -> HttpResponse:
                     context.update({
                         "preview": preview,
                         "total_rows": len(df),
+                        "template_name": template_name,
                         "step": "preview"
                     })
                     context["form"] = form
                     return render(request, "automation/mail_automation.html", context)
 
-                # If confirm_send is set, proceed with dry run or actual sending
-                if dry_run:
-                    # Dry run logic
-                    logs, attachment_summary = _perform_dry_run(
-                        df, email_column, company_column, subject, template_body, uploaded_files
-                    )
-                    # Ensure logs is a list of strings
-                    if isinstance(logs, list):
-                        context["logs"] = logs
-                    else:
-                        context["logs"] = [str(logs)] if logs else []
-                    context["step"] = "done"  # Dry run should show results like normal sending
-                    context["dry_run"] = True
-                    context["attachment_summary"] = attachment_summary
-                else:
+                # If confirm_send is set, proceed with actual sending (dry_run removed)
                     # Actual sending
                     try:
                         logs, results = _send_emails(

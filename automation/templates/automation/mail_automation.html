@@ -395,6 +395,7 @@
             <p style="margin-bottom: 2rem; color: #6b7280;">You need to sign in to Microsoft Graph to send emails. Use the "Sign in to Microsoft" button in the navigation bar above.</p>
           </div>
         </div>
+        <div id="signinInfo" style="margin-top: 1rem;"></div>
       {% endif %}
 
       {% if step == 'form' %}
@@ -435,102 +436,84 @@
            <div class="hint">Upload any file (PDF, DOC, ZIP, etc.) to attach to all emails</div>
          </div>
             
-            <div class="checkbox-group">
-              {{ form.dry_run }}
-              <label for="{{ form.dry_run.id_for_label }}">
-                <i class="fas fa-eye"></i> Dry Run (Preview only, don't send emails)
-              </label>
-            </div>
-            
             <div class="btn-group">
               <button class="btn" type="submit">
-                <i class="fas fa-search"></i> Preview & Validate
+                <i class="fas fa-eye"></i> Preview
               </button>
             </div>
           </form>
         </div>
       {% elif step == 'preview' %}
-        <div class="stats">
-          <div class="stat-card">
-            <div class="number">{{ row_count }}</div>
-            <div class="label">Total Recipients</div>
+        <div class="card">
+          <h2 style="margin-bottom: 1.5rem; color: #1f2937; font-size: 1.5rem;">
+            <i class="fas fa-eye"></i> Preview Information
+          </h2>
+          
+          <div class="stats" style="margin-bottom: 2rem;">
+            <div class="stat-card">
+              <div class="number">{{ total_rows }}</div>
+              <div class="label">Total Recipients</div>
+            </div>
+            <div class="stat-card">
+              <div class="number">{{ total_rows }}</div>
+              <div class="label">Emails to Send</div>
+            </div>
+            <div class="stat-card">
+              <div class="number">{{ template_name|default:"N/A" }}</div>
+              <div class="label">Template</div>
+            </div>
           </div>
-          <div class="stat-card">
-            <div class="number">{{ parsed_emails|length }}</div>
-            <div class="label">Valid Emails</div>
+
+          <div style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 1.5rem;">
+            <h3 style="margin-bottom: 1rem; color: #1f2937; font-size: 1.1rem;">
+              <i class="fas fa-info-circle" style="color: #667eea;"></i> What will happen:
+            </h3>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+              <li style="padding: 0.75rem 0; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 0.75rem;">
+                <i class="fas fa-check-circle" style="color: #16a34a;"></i>
+                <span><strong>{{ total_rows }} emails</strong> will be sent to recipients from your Excel file</span>
+              </li>
+              <li style="padding: 0.75rem 0; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 0.75rem;">
+                <i class="fas fa-envelope" style="color: #667eea;"></i>
+                <span>Each email will use the <strong>{{ template_name|default:"selected" }} template</strong></span>
+              </li>
+              <li style="padding: 0.75rem 0; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 0.75rem;">
+                <i class="fas fa-paperclip" style="color: #667eea;"></i>
+                <span>Attachments will be matched to companies automatically</span>
+              </li>
+              <li style="padding: 0.75rem 0; display: flex; align-items: center; gap: 0.75rem;">
+                <i class="fas fa-file-excel" style="color: #16a34a;"></i>
+                <span>A detailed Excel report will be generated after sending</span>
+              </li>
+            </ul>
           </div>
-          <div class="stat-card">
-            <div class="number">{% if form.data.dry_run %}Preview{% else %}Send{% endif %}</div>
-            <div class="label">Mode</div>
+
+          <div class="card" style="background: #f8fafc;">
+            <h3 style="margin-bottom: 1rem; color: #1f2937; font-size: 1.1rem;">
+              <i class="fas fa-table"></i> Data Preview (First 5 Rows)
+            </h3>
+            <div class="preview-table">{{ preview|safe }}</div>
           </div>
         </div>
 
         <div class="card">
           <h2 style="margin-bottom: 1.5rem; color: #1f2937; font-size: 1.5rem;">
-            <i class="fas fa-table"></i> Data Preview (First 5 Rows)
+            <i class="fas fa-rocket"></i> Ready to Send
           </h2>
-          <div class="preview-table">{{ preview_html|safe }}</div>
-        </div>
-
-        {% if preview_subject_sample or preview_render_sample %}
-          <div class="card">
-            <h2 style="margin-bottom: 1.5rem; color: #1f2937; font-size: 1.5rem;">
-              <i class="fas fa-eye"></i> Email Preview (Row 1)
-            </h2>
-            <div class="sample-preview">
-              {% if preview_subject_sample %}
-                <div class="subject">
-                  <strong><i class="fas fa-tag"></i> Subject:</strong> {{ preview_subject_sample }}
-                </div>
-              {% endif %}
-              {% if preview_render_sample %}
-                <h4><i class="fas fa-envelope-open"></i> Email Body:</h4>
-                <div class="body">{{ preview_render_sample }}</div>
-              {% endif %}
-            </div>
-          </div>
-        {% endif %}
-
-        {% if parsed_emails %}
-          <div class="card">
-            <h2 style="margin-bottom: 1.5rem; color: #1f2937; font-size: 1.5rem;">
-              <i class="fas fa-list"></i> Email Recipients
-            </h2>
-            <div style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0;">
-              <p style="margin-bottom: 1rem; color: #6b7280; font-weight: 500;">
-                <i class="fas fa-info-circle"></i> 
-                Showing first {{ parsed_emails|length }} email addresses from the Excel file
-              </p>
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 0.5rem;">
-                {% for e in parsed_emails %}
-                  <div style="background: white; padding: 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0; font-family: monospace; font-size: 0.9rem;">
-                    <i class="fas fa-envelope" style="color: #667eea; margin-right: 0.5rem;"></i>{{ e }}
-                  </div>
-                {% endfor %}
-              </div>
-            </div>
-          </div>
-        {% endif %}
-
-        <div class="card">
-          <h2 style="margin-bottom: 1.5rem; color: #1f2937; font-size: 1.5rem;">
-            <i class="fas fa-rocket"></i> Ready to {% if form.data.dry_run %}Preview{% else %}Send{% endif %}
-          </h2>
+          <p style="margin-bottom: 1.5rem; color: #6b7280;">
+            Review the information above. Click "Validate" to start sending emails.
+          </p>
           <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             {% for field in form %}
-              {% if field.name != 'excel_file' and field.name != 'attachment' %}
+              {% if field.name != 'excel_file' and field.name != 'attachment' and field.name != 'dry_run' %}
                 <input type="hidden" name="{{ field.name }}" value="{{ field.value|default_if_none:'' }}" />
               {% endif %}
             {% endfor %}
             <input type="hidden" name="confirm_send" value="1" />
             <div class="btn-group">
               <button class="btn" type="submit">
-                <i class="fas fa-{% if form.data.dry_run %}eye{% else %}paper-plane{% endif %}"></i>
-                {% if form.data.dry_run %}Run Dry Run{% else %}Send Emails{% endif %}
-              </button>
-              <button class="btn secondary" type="submit" name="action" value="attach_smoke_test">
-                <i class="fas fa-flask"></i> Test Attachments
+                <i class="fas fa-check-circle"></i> Validate & Send Emails
               </button>
               <a class="btn secondary" href="{% url 'dashboard' %}">
                 <i class="fas fa-home"></i> Go to Dashboard
