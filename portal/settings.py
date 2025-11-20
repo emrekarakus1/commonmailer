@@ -186,11 +186,18 @@ USER_TEMPLATES_PATH = os.getenv("USER_TEMPLATES_PATH", str(Path(DATA_STORAGE_PAT
 try:
     os.makedirs(DATA_STORAGE_PATH, exist_ok=True)
     os.makedirs(USER_TEMPLATES_PATH, exist_ok=True)
+    # Log storage path for debugging
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"Persistent storage initialized: DATA_STORAGE_PATH={DATA_STORAGE_PATH}, USER_TEMPLATES_PATH={USER_TEMPLATES_PATH}")
 except Exception as e:
-    print(f"Warning: Could not create persistent data directory: {e}")
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.warning(f"Could not create persistent data directory: {e}")
     # Fallback to BASE_DIR
     DATA_STORAGE_PATH = str(BASE_DIR)
     EMAIL_TEMPLATES_PATH = str(BASE_DIR / "email_templates.json")
     USER_TEMPLATES_PATH = str(BASE_DIR / "user_templates")
+    logger.warning(f"Using fallback paths: DATA_STORAGE_PATH={DATA_STORAGE_PATH}")
 
 
