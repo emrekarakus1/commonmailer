@@ -6,6 +6,8 @@ from automation import views as automation_views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    # Health check
+    path("health/", automation_views.health, name="health"),
     # Landing / Home
     path("", automation_views.landing, name="home"),
     # Auth routes

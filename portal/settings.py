@@ -19,7 +19,14 @@ SECRET_KEY = os.getenv(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DJANGO_DEBUG", "false").lower() == "true"
 
-ALLOWED_HOSTS: list[str] = os.getenv("ALLOWED_HOSTS", "*").split(",")
+# ALLOWED_HOSTS configuration
+# Include "*" and ".onrender.com" by default for Render deployment
+allowed_hosts_env = os.getenv("ALLOWED_HOSTS", "*")
+ALLOWED_HOSTS: list[str] = [h.strip() for h in allowed_hosts_env.split(",") if h.strip()]
+
+# Ensure ".onrender.com" is always included for Render compatibility
+if ".onrender.com" not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(".onrender.com")
 
 # CSRF Settings for Render
 CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if os.getenv("CSRF_TRUSTED_ORIGINS") else []
@@ -76,8 +83,12 @@ ASGI_APPLICATION = "portal.asgi.application"
 # https://docs.djangoproject.com/en/stable/ref/settings/#databases
 import dj_database_url
 
+# Detect if we're running on Render (Render sets RENDER environment variable)
+IS_RENDER = os.getenv("RENDER") == "true" or os.getenv("RENDER_SERVICE_ID") is not None
+
 # Use PostgreSQL from DATABASE_URL if available, fallback to SQLite for local dev
 DATABASE_URL = os.getenv("DATABASE_URL")
+
 if DATABASE_URL:
     # Production: Use PostgreSQL from Render
     DATABASES = {
@@ -87,6 +98,17 @@ if DATABASE_URL:
             conn_health_checks=True,
         )
     }
+    # Log database configuration
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"Using PostgreSQL database from DATABASE_URL")
+elif IS_RENDER:
+    # On Render, DATABASE_URL is REQUIRED - raise error instead of using SQLite
+    raise ValueError(
+        "DATABASE_URL environment variable is required on Render. "
+        "Please create a PostgreSQL database in Render and set DATABASE_URL. "
+        "See RENDER_POSTGRESQL_SETUP.md for instructions."
+    )
 else:
     # Local development: Use SQLite
     DATABASES = {
@@ -95,6 +117,9 @@ else:
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info("Using SQLite database for local development")
 
 
 # Password validation - DISABLED (no password rules)

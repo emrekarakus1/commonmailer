@@ -23,7 +23,10 @@ RUN mkdir -p /app/tmp_uploads /app/staticfiles
 
 EXPOSE $PORT
 
+# Make scripts executable
+RUN chmod +x build.sh start.sh || true
+
 # Run migrations at startup (when DATABASE_URL is available) then start gunicorn
-CMD python manage.py migrate --noinput && \
-    gunicorn portal.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --log-level info
+# Use start.sh if available, otherwise use inline command
+CMD if [ -f start.sh ]; then ./start.sh; else python manage.py migrate --noinput && gunicorn portal.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --log-level info; fi
 

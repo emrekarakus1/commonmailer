@@ -630,9 +630,32 @@ def template_download(request: HttpRequest) -> HttpResponse:
         messages.error(request, f"Failed to download templates: {e}")
         return redirect("automation:template_manager")
 
+def health(request: HttpRequest) -> HttpResponse:
+    """Basic health check endpoint that returns OK."""
+    return HttpResponse("OK", status=200)
+
 def health_check(request: HttpRequest) -> HttpResponse:
-    """Simple health check endpoint."""
-    return HttpResponse("ok", status=200)
+    """
+    Health check endpoint that verifies database connectivity.
+    This endpoint can be called periodically to keep the database alive on Render.
+    """
+    from django.db import connection
+    from django.db.utils import OperationalError
+    
+    try:
+        # Test database connection with a simple query
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+            cursor.fetchone()
+        
+        # Database connection is healthy
+        return HttpResponse("ok", status=200)
+    except OperationalError as e:
+        logger.error(f"Database health check failed: {str(e)}")
+        return HttpResponse(f"database_error: {str(e)}", status=503)
+    except Exception as e:
+        logger.error(f"Health check failed: {str(e)}")
+        return HttpResponse(f"error: {str(e)}", status=500)
 
 def landing(request: HttpRequest) -> HttpResponse:
     """Landing page view."""
